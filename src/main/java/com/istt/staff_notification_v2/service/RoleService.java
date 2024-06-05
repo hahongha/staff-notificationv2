@@ -21,7 +21,9 @@ import com.istt.staff_notification_v2.dto.DepartmentDTO;
 import com.istt.staff_notification_v2.dto.RoleDTO;
 import com.istt.staff_notification_v2.entity.Department;
 import com.istt.staff_notification_v2.entity.Role;
+import com.istt.staff_notification_v2.entity.User;
 import com.istt.staff_notification_v2.repository.RoleRepo;
+import com.istt.staff_notification_v2.repository.UserRepo;
 
 public interface RoleService {
 	RoleDTO create(RoleDTO roleDTO);
@@ -39,6 +41,9 @@ class RoleServiceImpl implements RoleService {
 
 	@Autowired
 	private RoleRepo roleRepo;
+	
+	@Autowired
+	private UserRepo userRepo;
 	
 	private static final String ENTITY_NAME = "isttRole";
 
@@ -69,6 +74,10 @@ class RoleServiceImpl implements RoleService {
 			Role role = roleRepo.findById(id).orElseThrow(NoResultException::new);
 			if (role != null) {
 				//truy cap cac User theo role ID
+				List<User> users = userRepo.findByRoles(role);
+				for (User user : users) {
+					user.getRoles().remove(role);
+				}
 				roleRepo.deleteById(id);
 				return new ModelMapper().map(role, RoleDTO.class);
 			}

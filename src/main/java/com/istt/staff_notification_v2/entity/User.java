@@ -48,9 +48,5 @@ public class User {
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "employeeId", referencedColumnName = "employee_id")
 	private Employee employee;
-	
-	protected void removeRole(Role role) {
-		this.roles.remove(role);
-	}
 
 }

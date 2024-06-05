@@ -31,9 +31,5 @@ public class Role {
 	@JsonIgnore
 	@ManyToMany(mappedBy = "roles")
 	private Set<User> users;
-	
-	protected void removeUser(User user) {
-		this.users.remove(user);
-	}
 
 }

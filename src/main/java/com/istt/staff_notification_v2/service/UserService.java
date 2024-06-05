@@ -84,6 +84,10 @@ class UserServiceImpl implements UserService {
 
 	@Autowired
 	ApplicationProperties props;
+	
+	private void removeRole() {
+		
+	}
 
 	@Override
 	@Transactional
@@ -149,8 +153,12 @@ class UserServiceImpl implements UserService {
 	public Boolean delete(String id) {
 		User user = userRepo.findById(id).orElseThrow(NoResultException::new);
 		if(user!= null) {
-			userRepo.delete(user);
-			return true;
+				//truy cap cac Role theo userId
+				List<Role> roles = roleRepo.findByUsers(user);
+				for (Role role : roles) {
+					role.getUsers().remove(user);
+				}
+		userRepo.delete(user);
 		}
 		return false;
 	}

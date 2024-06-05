@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import com.istt.staff_notification_v2.dto.UserDTO;
 import com.istt.staff_notification_v2.entity.Employee;
+import com.istt.staff_notification_v2.entity.Role;
 import com.istt.staff_notification_v2.entity.User;
 
 @Repository
@@ -32,6 +33,8 @@ public interface UserRepo extends JpaRepository<User, String> {
 	Boolean existsByUsername(String username);
 	
 	Optional<User> findByEmployee(@Param("x")Employee employee);
+	
+	List<User> findByRoles(@Param("x")Role role);
 	
 	@Query("SELECT u FROM User u ")
 	Page<User> getAll(@Param("x") String value, Pageable pageable);
