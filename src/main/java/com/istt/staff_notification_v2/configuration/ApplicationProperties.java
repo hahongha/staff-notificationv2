@@ -19,16 +19,24 @@ public class ApplicationProperties {
 	public enum StatusEmployeeRef {
 		SUSPEND, STOP, ACTIVE
 	}
-
-	private List<String> STATUS_LEAVER_REQUEST = Arrays.asList("NOT_APPROVED", "APPROVED", "REJECT");
+	
+	public enum StatusAttendanceRef {
+		ABSENT, ACTIVE, OT, HAFT_ABSENT
+	}
+	
+	private List<String> STATUS_LEAVER_REQUEST = Arrays.asList("NOT_APPROVED", "APPROVED", "REJECT","WAITING");
 
 	public enum StatusLeaveRequestRef {
-		NOT_APPROVED, APPROVED, REJECT
+		NOT_APPROVED, APPROVED, REJECT, WAITING
 	}
+	
+	private List<String> STATUS_ATTENDANCE = Arrays.asList("ABSENT", "ACTIVE", "OT","HAFT_ABSENT");
 
 	@PostConstruct
 	protected void init() {
 		System.out.println(" == Application Reloaded: " + this);
 	}
+	
+	
 
 }
