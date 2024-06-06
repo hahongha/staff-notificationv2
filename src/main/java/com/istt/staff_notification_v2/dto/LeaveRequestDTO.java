@@ -31,11 +31,8 @@ public class LeaveRequestDTO {
 	
 	public boolean validRequest() {
 		if(this.employee==null||this.leavetype== null|| this.requestDate==null
-				||this.reason==null||
-				this.status==null||this.anrreason==null||
-				this.duration<0.5
-				||this.reason.isEmpty()||
-				this.status.isEmpty()||this.anrreason.isEmpty()
+				||this.reason==null
+				||this.reason.isEmpty()
 				||this.startDate==null
 				||this.endDate== null
 				) return true;

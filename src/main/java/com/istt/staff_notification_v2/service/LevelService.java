@@ -19,7 +19,11 @@ import com.istt.staff_notification_v2.apis.errors.BadRequestAlertException;
 import com.istt.staff_notification_v2.dto.DepartmentDTO;
 import com.istt.staff_notification_v2.dto.LevelDTO;
 import com.istt.staff_notification_v2.entity.Department;
+import com.istt.staff_notification_v2.entity.Employee;
 import com.istt.staff_notification_v2.entity.Level;
+import com.istt.staff_notification_v2.entity.Role;
+import com.istt.staff_notification_v2.entity.User;
+import com.istt.staff_notification_v2.repository.EmployeeRepo;
 import com.istt.staff_notification_v2.repository.LevelRepo;
 
 public interface LevelService {
@@ -40,9 +44,20 @@ class LevelServiceImpl implements LevelService {
 
 	@Autowired
 	private LevelRepo levelRepo;
+	
+	@Autowired
+	private EmployeeRepo employeeRepo;
 
 	private static final String ENTITY_NAME = "isttLevel";
 
+	private void removeEmployee(Level level) {
+		List<Employee> employees = employeeRepo.findByLevels(level);
+		if(employees.size()>0)
+			for (Employee employee : employees) {
+				employee.getLevels().remove(level);
+			}
+	}
+	
 	@Override
 	public LevelDTO create(LevelDTO levelDTO) {
 		try {
@@ -66,6 +81,7 @@ class LevelServiceImpl implements LevelService {
 		try {
 			Level level = levelRepo.findByLevelId(id).orElseThrow(NoResultException::new);
 			if (level != null) {
+				removeEmployee(level);
 				levelRepo.deleteById(id);
 				return new ModelMapper().map(level, LevelDTO.class);
 			}

@@ -20,16 +20,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.Model;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
-
-import com.istt.staff_notification_v2.apis.errors.BadRequestAlertException;
 import com.istt.staff_notification_v2.configuration.ApplicationProperties;
-import com.istt.staff_notification_v2.dto.EmployeeDTO;
 import com.istt.staff_notification_v2.dto.RoleDTO;
 import com.istt.staff_notification_v2.dto.SearchDTO;
 import com.istt.staff_notification_v2.dto.UserDTO;
@@ -85,8 +81,12 @@ class UserServiceImpl implements UserService {
 	@Autowired
 	ApplicationProperties props;
 	
-	private void removeRole() {
-		
+	private void removeRole(User user) {
+		List<Role> roles = roleRepo.findByUsers(user);
+		if(roles.size()>0)
+			for (Role role : roles) {
+				role.getUsers().remove(user);
+			}
 	}
 
 	@Override
@@ -153,12 +153,8 @@ class UserServiceImpl implements UserService {
 	public Boolean delete(String id) {
 		User user = userRepo.findById(id).orElseThrow(NoResultException::new);
 		if(user!= null) {
-				//truy cap cac Role theo userId
-				List<Role> roles = roleRepo.findByUsers(user);
-				for (Role role : roles) {
-					role.getUsers().remove(user);
-				}
-		userRepo.delete(user);
+			removeRole(user);
+			userRepo.delete(user);
 		}
 		return false;
 	}
@@ -168,6 +164,7 @@ class UserServiceImpl implements UserService {
 		Employee employee = employeeRepo.findById(id).orElseThrow(NoResultException::new);
 		User user = userRepo.findByEmployee(employee).orElseThrow(NoResultException::new);
 		if(user!= null) {
+			removeRole(user);
 			userRepo.delete(user);
 			return true;
 		}

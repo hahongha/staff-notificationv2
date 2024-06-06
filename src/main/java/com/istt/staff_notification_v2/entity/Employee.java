@@ -69,8 +69,8 @@ public class Employee {
 	@JoinTable(name = "employee_level", joinColumns = @JoinColumn(name = "employee_id"), inverseJoinColumns = @JoinColumn(name = "level_id"))
 	private Set<Level> levels = new HashSet<>();
 	
-	@Convert(converter = StringListConverter.class)
-	@Column(name = "employeeDependence")
-	private List<String> employeeDependence;
+//	@Convert(converter = StringListConverter.class)
+//	@Column(name = "employeeDependence")
+//	private List<String> employeeDependence;
 
 }

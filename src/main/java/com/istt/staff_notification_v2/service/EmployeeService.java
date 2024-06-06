@@ -37,7 +37,7 @@ import com.istt.staff_notification_v2.repository.UserRepo;
 public interface EmployeeService {
 	EmployeeDTO create(EmployeeDTO employeeDTO);
 
-	List<String> filterEmployeeDependence(Employee employeeCurrent);
+	List<EmployeeDTO> filterEmployeeDependence(Employee employeeCurrent);
 
 	List<EmployeeDTO> getEmployeeDependence(String employeeId);
 
@@ -113,10 +113,10 @@ class EmployeeServiceImpl implements EmployeeService {
 			if (!props.getSTATUS_EMPLOYEE().contains(employee.getStatus())) {
 				employee.setStatus(props.getSTATUS_EMPLOYEE().get(StatusEmployeeRef.ACTIVE.ordinal()));
 			}
-			//set Approver
-			filterEmployeeDependence(employee);
-			employee.setEmployeeDependence(filterEmployeeDependence(employee));
-			employeeRepo.save(employee);
+//			//set Approver
+//			filterEmployeeDependence(employee);
+//			employee.setEmployeeDependence(filterEmployeeDependence(employee));
+//			employeeRepo.save(employee);
 
 //			create new user 
 			if (userRepo.findByUsername(employee.getEmail()).isPresent()) {
@@ -260,50 +260,49 @@ class EmployeeServiceImpl implements EmployeeService {
 
 	@Override
 	public List<EmployeeDTO> getEmployeeDependence(String employeeId) {
-		try {
-
-			Employee employee = employeeRepo.findById(employeeId).orElseThrow(NoResultException::new);
-			List<String> employeeDependenceIds = employee.getEmployeeDependence();
-			if (employeeDependenceIds.size() == 0)
-				return new ArrayList<>();
-
-			List<Employee> employeeDependences = employeeRepo.findAllById(employeeDependenceIds);
-//					.orElseThrow(NoResultException::new);
-			if(employeeDependences.size()<1) throw new NoResultException();
-			List<EmployeeDTO> employeeDependencesDTO = new ArrayList<>();
-			for (Employee e : employeeDependences) {
-				EmployeeDTO employeeDTO = new ModelMapper().map(e, EmployeeDTO.class);
-				employeeDependencesDTO.add(employeeDTO);
-			}
-			return employeeDependencesDTO;
-
-		} catch (ResourceAccessException e) {
-			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
-		} catch (HttpServerErrorException | HttpClientErrorException e) {
-			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
-		}
+//		try {
+//
+//			Employee employee = employeeRepo.findById(employeeId).orElseThrow(NoResultException::new);
+//			List<String> employeeDependenceIds = employee.getEmployeeDependence();
+//			if (employeeDependenceIds.size() == 0)
+//				return new ArrayList<>();
+//
+//			List<Employee> employeeDependences = employeeRepo.findAllById(employeeDependenceIds);
+////					.orElseThrow(NoResultException::new);
+//			if(employeeDependences.size()<1) throw new NoResultException();
+//			List<EmployeeDTO> employeeDependencesDTO = new ArrayList<>();
+//			for (Employee e : employeeDependences) {
+//				EmployeeDTO employeeDTO = new ModelMapper().map(e, EmployeeDTO.class);
+//				employeeDependencesDTO.add(employeeDTO);
+//			}
+//			return employeeDependencesDTO;
+//
+//		} catch (ResourceAccessException e) {
+//			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
+//		} catch (HttpServerErrorException | HttpClientErrorException e) {
+//			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
+//		}
+		return null;
 	}
 	
 	@Override
-	public List<String> filterEmployeeDependence(Employee employeeCurrent) { // return list dependence employeeId
+	public List<EmployeeDTO> filterEmployeeDependence(Employee employeeCurrent) { // return list dependence employeeId
+		ModelMapper mapper = new ModelMapper();
 		List<Employee> employeesRaw = employeeRepo.findByDepartment(employeeCurrent.getDepartment().getDepartmentId());
 		if (employeesRaw.isEmpty())
 			throw new BadRequestAlertException("Bad request: Not found employee in employee` department", ENTITY_NAME,
 					"Not found");
 
 		Long maxLevelCurrentEmployee = getMaxLevelCode(employeeCurrent);
-		List<String> employeeIdDependences = new ArrayList<>();
+		List<EmployeeDTO> employeeIdDependences = new ArrayList<>();
 
 		for (Employee e : employeesRaw) {
-			if (getMaxLevelCode(e) > maxLevelCurrentEmployee)
-				employeeIdDependences.add(e.getEmployeeId());
+			if (getMaxLevelCode(e) > maxLevelCurrentEmployee) {
+				EmployeeDTO approver = mapper.map(e, EmployeeDTO.class);
+				employeeIdDependences.add(approver);
 		}
-
-		System.out.println("maxLevelCurrentEmployee: " + maxLevelCurrentEmployee);
-
+		}
+//		System.out.println("maxLevelCurrentEmployee: " + maxLevelCurrentEmployee);
 		return employeeIdDependences;
 	}
-	
-	
-
 }

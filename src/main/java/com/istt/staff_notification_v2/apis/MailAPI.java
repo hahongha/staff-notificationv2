@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.istt.staff_notification_v2.dto.EmployeeDTO;
 import com.istt.staff_notification_v2.dto.MailRequestDTO;
+import com.istt.staff_notification_v2.service.EmployeeService;
 import com.istt.staff_notification_v2.service.MailService;
 
 @RestController
@@ -18,6 +19,8 @@ public class MailAPI {
 
 	@Autowired
 	private MailService mailService;
+	@Autowired
+	private EmployeeService employeeService;
 
 	@PostMapping("")
 	public ResponseEntity<String> sendNotification(@RequestBody MailRequestDTO mailRequestDTO) {
@@ -40,11 +43,11 @@ public class MailAPI {
 
 	}
 	
-	@PostMapping("/getAllAprrover")
+	@PostMapping("/sendLeaveRequest")
 	public ResponseEntity<String> sendLeaveRequest(@RequestBody MailRequestDTO mailRequestDTO) {
 
 		try {
-			System.err.println(mailRequestDTO.getRecceiverList().size());
+			mailRequestDTO.setRecceiverList(employeeService.getEmployeeDependence(mailRequestDTO.getLeaveRequestDTO().getEmployee().getEmployeeId()));
 			for (int i = 0; i < mailRequestDTO.getRecceiverList().size(); i++) {
 				EmployeeDTO receiver = new EmployeeDTO();
 				receiver = mailRequestDTO.getRecceiverList().get(i);

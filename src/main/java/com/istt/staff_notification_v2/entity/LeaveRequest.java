@@ -16,7 +16,7 @@ import lombok.EqualsAndHashCode;
 
 @Entity
 @Data
-@Table(name = "leaveqequest")
+@Table(name = "leaverequest")
 @EqualsAndHashCode(callSuper = false)
 public class LeaveRequest {
 
@@ -56,5 +56,11 @@ public class LeaveRequest {
 
 	@Column(columnDefinition = "TEXT")
 	private String anrreason;
+	
+	@Override
+	public String toString() {
+		return this.leaveqequestId.toString()+ "/employee:"+ this.employee.getEmployeeId().toString()
+				+"/leavetype:"+this.leavetype.getLeavetypeId()+"/requestdate:"+this.requestDate.toString();
+	}
 
 }

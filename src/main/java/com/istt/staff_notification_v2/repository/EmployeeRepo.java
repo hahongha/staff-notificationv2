@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.istt.staff_notification_v2.entity.Employee;
+import com.istt.staff_notification_v2.entity.Level;
 
 @Repository
 public interface EmployeeRepo extends JpaRepository<Employee, String> {
@@ -38,6 +39,8 @@ public interface EmployeeRepo extends JpaRepository<Employee, String> {
 	
 	@Query("SELECT e FROM Employee e WHERE e.department.departmentId = :x ")
 	List<Employee> findByDepartment(@Param("x") String department);
+	
+	List<Employee> findByLevels(@Param("x") Level level);
 	
 	
 }

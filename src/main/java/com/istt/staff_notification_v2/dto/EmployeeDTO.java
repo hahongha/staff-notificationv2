@@ -31,7 +31,7 @@ public class EmployeeDTO {
 	private Date offdate;
 	private Set<Level> levels = new HashSet<>();
 	
-	private List<String> employeeDependence;
+//	private List<String> employeeDependence;
 	
 	private User user;
 

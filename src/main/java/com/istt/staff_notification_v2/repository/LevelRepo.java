@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.istt.staff_notification_v2.entity.Employee;
 import com.istt.staff_notification_v2.entity.Level;
 
 public interface LevelRepo extends JpaRepository<Level, String> {
@@ -26,4 +27,6 @@ public interface LevelRepo extends JpaRepository<Level, String> {
 	Optional<Level> findByLevelName(String levelName);
 	
 	Optional<Level> findByLevelCode(Long levelCode);
+	
+	List<Level> findByEmployees(Employee employee);
 }
