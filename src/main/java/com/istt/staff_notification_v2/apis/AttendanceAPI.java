@@ -20,6 +20,7 @@ import com.istt.staff_notification_v2.apis.errors.BadRequestAlertException;
 import com.istt.staff_notification_v2.dto.AttendanceDTO;
 import com.istt.staff_notification_v2.dto.EmployeeDTO;
 import com.istt.staff_notification_v2.dto.ResponseDTO;
+import com.istt.staff_notification_v2.dto.SearchDTO;
 import com.istt.staff_notification_v2.service.AttendanceService;
 
 @RestController
@@ -69,6 +70,27 @@ public class AttendanceAPI {
 		}
 		return ResponseDTO.<AttendanceDTO>builder().code(String.valueOf(HttpStatus.OK.value()))
 				.data(attendanceService.get(id)).build();
+	}
+	
+	@GetMapping("/getStatus/{status}")
+	// @PreAuthorize("hasRole('ROLE_ADMIN')")
+	public ResponseDTO<List<AttendanceDTO>> getStatus(@PathVariable(value = "status") String status) {
+		if (status == null) {
+			throw new BadRequestAlertException("Bad request: missing status", ENTITY_NAME, "missing_status");
+		}
+		return ResponseDTO.<List<AttendanceDTO>>builder().code(String.valueOf(HttpStatus.OK.value()))
+				.data(attendanceService.getStatus(status)).build();
+	}
+	
+	
+	@PostMapping("/searchByStatus")
+	public ResponseDTO<List<AttendanceDTO>> search(@RequestBody @Valid SearchDTO searchDTO) {
+		return attendanceService.search(searchDTO);
+	}
+	
+	@PostMapping("/searchByEmployeeStatus")
+	public ResponseDTO<List<AttendanceDTO>> searchbyName(@RequestBody @Valid SearchDTO searchDTO) {
+		return attendanceService.searchByEmployeeName(searchDTO);
 	}
 	
 	@PutMapping("")
