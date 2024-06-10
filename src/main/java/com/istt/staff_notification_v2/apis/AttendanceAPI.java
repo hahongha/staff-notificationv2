@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,16 +33,18 @@ public class AttendanceAPI {
 	
 	
 	private static final String ENTITY_NAME = "isttAttendance";
-
+	private static Logger logger = LogManager.getLogger(AttendanceAPI.class);
+	
+	
 	@PostMapping("")
 	public ResponseDTO<AttendanceDTO> create(@RequestBody @Valid AttendanceDTO attendanceDTO) throws URISyntaxException {
 		if (attendanceDTO.getStartDate()==null||
 				attendanceDTO.getEndDate()==null
 				) {
-			throw new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missing");
+			logger.error(ENTITY_NAME, new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missing"));
 		}
-		
-		attendanceService.create(attendanceDTO);
+		else
+			attendanceService.create(attendanceDTO);
 		return ResponseDTO.<AttendanceDTO>builder().code(String.valueOf(HttpStatus.OK.value())).data(attendanceDTO).build();
 	}
 
@@ -88,15 +92,14 @@ public class AttendanceAPI {
 		return attendanceService.search(searchDTO);
 	}
 	
-	@PostMapping("/searchByEmployeeStatus")
+	@PostMapping("/searchByEmployee")
 	public ResponseDTO<List<AttendanceDTO>> searchbyName(@RequestBody @Valid SearchDTO searchDTO) {
 		return attendanceService.searchByEmployeeName(searchDTO);
 	}
 	
 	@PutMapping("")
 	public ResponseDTO<AttendanceDTO> update(@RequestBody @Valid AttendanceDTO attendanceDTO) throws URISyntaxException {
-		if (attendanceDTO.getAttendanceId()==null
-				) {
+		if (attendanceDTO.getAttendanceId()==null) {
 			throw new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missing");
 		}
 

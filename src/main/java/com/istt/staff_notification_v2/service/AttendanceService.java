@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 
 import javax.persistence.NoResultException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -34,6 +36,8 @@ import com.istt.staff_notification_v2.entity.Attendance;
 import com.istt.staff_notification_v2.entity.Employee;
 import com.istt.staff_notification_v2.repository.AttendanceRepo;
 import com.istt.staff_notification_v2.repository.EmployeeRepo;
+
+//import elf4j.Logger;
 
 public interface AttendanceService {
 	
@@ -73,6 +77,8 @@ class AttendanceServiceImpl implements AttendanceService{
 	
 	private static final String ENTITY_NAME = "isttAttendance";
 	
+	private static Logger logger = LogManager.getLogger(AttendanceService.class);
+	
 	@Transactional
 	@Override
 	public AttendanceDTO create(AttendanceDTO attendanceDTO) {
@@ -83,8 +89,10 @@ class AttendanceServiceImpl implements AttendanceService{
 			attendance.setAttendanceId(UUID.randomUUID().toString().replaceAll("-", ""));
 			
 			Employee employee = employeeRepo.findById(attendanceDTO.getEmployee().getEmployeeId()).orElseThrow(NoResultException::new);
-			if(employee.getStatus().compareTo(props.getSTATUS_EMPLOYEE().get(StatusEmployeeRef.SUSPEND.ordinal()))==0)
+			if(employee.getStatus().compareTo(props.getSTATUS_EMPLOYEE().get(StatusEmployeeRef.SUSPEND.ordinal()))==0) {
 				throw new BadRequestAlertException("employee is SUSPEND", ENTITY_NAME, "exists");
+			
+			}
 			attendance.setEmployee(employee);
 			
 			if (!props.getSTATUS_ATTENDANCE().contains(attendanceDTO.getStatus())) {

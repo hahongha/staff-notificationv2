@@ -41,6 +41,65 @@
 		</dependency>
 		
 		
+		<!-- log
+		<dependency>
+            <groupId>io.github.elf4j</groupId>
+            <artifactId>elf4j-engine</artifactId>
+            <version>15.2.6</version>
+        </dependency>
+        
+
+		<dependency>
+		    <groupId>io.github.elf4j</groupId>
+		    <artifactId>elf4j-jul</artifactId>
+		    <scope>runtime</scope>
+		</dependency>
+		
+		
+		<dependency>
+		    <groupId>com.google.code.findbugs</groupId>
+		    <artifactId>jsr305</artifactId>
+		    <version>3.0.2</version>
+		</dependency>
+
+		log-->
+		
+		<!-- https://mvnrepository.com/artifact/log4j/log4j
+		<dependency>
+		    <groupId>log4j</groupId>
+		    <artifactId>log4j</artifactId>
+		    <version>1.2.17</version>
+		</dependency>
+		-->
+		
+		<!-- Exclude Spring Boot's Default Logging -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Add Log4j2 Dependency -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.lmax</groupId>
+            <artifactId>disruptor</artifactId>
+            <version>3.4.0</version>
+        </dependency>
+		
+		
+		
+
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
@@ -127,6 +186,8 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
+		
 
 
 
