@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,6 +23,8 @@ import com.istt.staff_notification_v2.apis.errors.BadRequestAlertException;
 import com.istt.staff_notification_v2.dto.DepartmentDTO;
 import com.istt.staff_notification_v2.dto.ResponseDTO;
 import com.istt.staff_notification_v2.dto.SearchDTO;
+import com.istt.staff_notification_v2.security.securityv2.CurrentUser;
+import com.istt.staff_notification_v2.security.securityv2.UserPrincipal;
 import com.istt.staff_notification_v2.service.DepartmentService;
 
 @RestController
@@ -30,11 +34,14 @@ public class DepartmentAPI {
 	private DepartmentService departmentService;
 
 	private static final String ENTITY_NAME = "isttDepartment";
+	private static final Logger logger = LogManager.getLogger(DepartmentAPI.class);
 
 	@PostMapping("")
-	public ResponseDTO<DepartmentDTO> create(@RequestBody @Valid DepartmentDTO departmentDTO)
+	public ResponseDTO<DepartmentDTO> create(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid DepartmentDTO departmentDTO)
 			throws URISyntaxException {
+		logger.info("create by :" + currentuser.getUsername());
 		if (departmentDTO.getDepartmentName() == null) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missin_name");
 		}
 		departmentService.create(departmentDTO);
@@ -43,8 +50,10 @@ public class DepartmentAPI {
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseDTO<Void> delete(@PathVariable(value = "id") String id) throws URISyntaxException {
+	public ResponseDTO<Void> delete(@CurrentUser UserPrincipal currentuser,@PathVariable(value = "id") String id) throws URISyntaxException {
+		logger.info("create by :" + currentuser.getUsername());
 		if (id == null) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing id", ENTITY_NAME, "missing_id");
 		}
 		departmentService.delete(id);
@@ -57,9 +66,10 @@ public class DepartmentAPI {
 	}
 
 	@DeleteMapping("/ids")
-	public ResponseDTO<List<String>> deletebyListId(@RequestBody @Valid List<String> ids) throws URISyntaxException {
-
+	public ResponseDTO<List<String>> deletebyListId(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid List<String> ids) throws URISyntaxException {
+		logger.info("create by :" + currentuser.getUsername());
 		if (ids.isEmpty()) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing departments", ENTITY_NAME, "missing_departments");
 		}
 		departmentService.deleteAllbyIds(ids);
@@ -67,7 +77,8 @@ public class DepartmentAPI {
 	}
 
 	@PutMapping("/")
-	public ResponseDTO<DepartmentDTO> update(@RequestBody @Valid DepartmentDTO departmentDTO) throws IOException {
+	public ResponseDTO<DepartmentDTO> update(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid DepartmentDTO departmentDTO) throws IOException {
+		logger.info("create by :" + currentuser.getUsername());
 		departmentService.update(departmentDTO);
 		return ResponseDTO.<DepartmentDTO>builder().code(String.valueOf(HttpStatus.OK.value())).data(departmentDTO)
 				.build();

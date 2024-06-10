@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 import javax.persistence.NoResultException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -96,6 +98,7 @@ class EmployeeServiceImpl implements EmployeeService {
 	ApplicationProperties props;
 
 	private static final String ENTITY_NAME = "isttEmployee";
+	private static final Logger logger = LogManager.getLogger(EmployeeService.class);
 
 	private static Long getMaxLevelCode(Employee e) {
 		Long max = Long.MIN_VALUE;
@@ -111,10 +114,11 @@ class EmployeeServiceImpl implements EmployeeService {
 	public List<String> filterEmployeeDependence(Employee employeeCurrent) { // return list dependence employeeId
 		Optional<List<Employee>> employeesRaw = employeeRepo.findAllByDepartmentId(employeeCurrent.getDepartment(),
 				StatusEmployeeRef.ACTIVE.toString());
-		if (employeesRaw.isEmpty())
+		if (employeesRaw.isEmpty()) {
+			logger.error("Bad request: Not found employee in employee` department");
 			throw new BadRequestAlertException("Bad request: Not found employee in employee` department", ENTITY_NAME,
 					"Not found");
-
+		}
 		Long maxLevelCurrentEmployee = getMaxLevelCode(employeeCurrent);
 		List<String> employeeIdDependences = new ArrayList<>();
 
@@ -209,7 +213,8 @@ class EmployeeServiceImpl implements EmployeeService {
 			Set<LevelDTO> levels = new HashSet<LevelDTO>();
 			for (LevelDTO level : employeeDTO.getLevels()) {
 				levels.add(new ModelMapper().map(
-						levelRepo.findByLevelId(level.getLevelId()).orElseThrow(NoResultException::new),
+						levelRepo.findByLevelId(level.getLevelId())
+						.orElseThrow(NoResultException::new),
 						LevelDTO.class));
 			}
 			employeeDTO.setLevels(levels);
@@ -240,6 +245,7 @@ class EmployeeServiceImpl implements EmployeeService {
 			employeeRepo.save(employee);
 			return true;
 		}
+		logger.error("missing data");
 		return false;
 	}
 
@@ -467,6 +473,7 @@ class EmployeeServiceImpl implements EmployeeService {
 
 			return employeesByLevel.get(sortedLevels.get(sortedLevels.size() - 1));
 		}
+		logger.error("can not getNodeDepartment");
 		return null;
 	}
 

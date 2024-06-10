@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -33,11 +35,14 @@ public class LeaveTypeAPI {
 	private LeaveTypeService leaveTypeService;
 
 	private static final String ENTITY_NAME = "isttLeaveType";
+	private static final Logger logger = LogManager.getLogger(LeaveTypeAPI.class);
 
 	@PostMapping("")
 //	@PreAuthorize("hasAuthority('ADMIN') and hasAuthority('USER')")
-	public ResponseDTO<LeaveTypeDTO> create(@RequestBody LeaveTypeDTO leaveTypeDTO) throws URISyntaxException {
+	public ResponseDTO<LeaveTypeDTO> create(@CurrentUser UserPrincipal currentuser,@RequestBody LeaveTypeDTO leaveTypeDTO) throws URISyntaxException {
+		logger.info("create by :" + currentuser.getUsername());
 		if (leaveTypeDTO.getLeavetypeName() == null) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missing_leaveType");
 		}
 		leaveTypeService.create(leaveTypeDTO);
@@ -48,7 +53,9 @@ public class LeaveTypeAPI {
 	@DeleteMapping("/{id}")
 	public ResponseDTO<Void> delete(@CurrentUser UserPrincipal currentUser, @PathVariable(value = "id") String id)
 			throws URISyntaxException {
+		logger.info("create by :" + currentUser.getUsername());
 		if (id == null) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missing_id");
 		}
 		leaveTypeService.delete(id);
@@ -56,14 +63,16 @@ public class LeaveTypeAPI {
 	}
 
 	@PostMapping("/search")
-	public ResponseDTO<List<LeaveTypeDTO>> search(@RequestBody @Valid SearchDTO searchDTO) {
+	public ResponseDTO<List<LeaveTypeDTO>> search(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid SearchDTO searchDTO) {
+		logger.info("create by :" + currentuser.getUsername());
 		return leaveTypeService.search(searchDTO);
 	}
 
 	@DeleteMapping("/ids")
-	public ResponseDTO<List<String>> deletebyListId(@RequestBody @Valid List<String> ids) throws URISyntaxException {
-
+	public ResponseDTO<List<String>> deletebyListId(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid List<String> ids) throws URISyntaxException {
+		logger.info("create by :" + currentuser.getUsername());
 		if (ids.isEmpty()) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing leaveTypes", ENTITY_NAME, "missing_leaveTypes");
 		}
 		leaveTypeService.deleteAllbyIds(ids);
@@ -71,7 +80,8 @@ public class LeaveTypeAPI {
 	}
 
 	@PutMapping("/")
-	public ResponseDTO<LeaveTypeDTO> update(@RequestBody @Valid LeaveTypeDTO leaveTypeDTO) throws IOException {
+	public ResponseDTO<LeaveTypeDTO> update(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid LeaveTypeDTO leaveTypeDTO) throws IOException {
+		logger.info("create by :" + currentuser.getUsername());
 		leaveTypeService.update(leaveTypeDTO);
 		return ResponseDTO.<LeaveTypeDTO>builder().code(String.valueOf(HttpStatus.OK.value())).data(leaveTypeDTO)
 				.build();
@@ -79,7 +89,8 @@ public class LeaveTypeAPI {
 	}
 
 	@GetMapping("/all")
-	public ResponseDTO<List<LeaveTypeDTO>> getAll() throws IOException {
+	public ResponseDTO<List<LeaveTypeDTO>> getAll(@CurrentUser UserPrincipal currentuser) throws IOException {
+		logger.info("create by :" + currentuser.getUsername());
 		return ResponseDTO.<List<LeaveTypeDTO>>builder().code(String.valueOf(HttpStatus.OK.value()))
 				.data(leaveTypeService.getAll()).build();
 	}

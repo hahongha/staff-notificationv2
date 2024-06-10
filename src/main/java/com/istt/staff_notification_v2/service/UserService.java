@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -78,6 +80,7 @@ class UserServiceImpl implements UserService {
 	ApplicationProperties props;
 
 	private static final String ENTITY_NAME = "isttUser";
+	private static final Logger logger = LogManager.getLogger(UserService.class);
 
 	@Override
 	@Transactional
@@ -91,6 +94,7 @@ class UserServiceImpl implements UserService {
 			user.setPassword(new BCryptPasswordEncoder().encode(userDTO.getPassword()));
 
 			if (userRepo.findByUsername(userDTO.getUsername()).isPresent()) {
+				logger.error("Bad request: USER already exists");
 				throw new BadRequestAlertException("Bad request: USER already exists", ENTITY_NAME, "USER exists");
 			}
 			// map role
@@ -106,8 +110,10 @@ class UserServiceImpl implements UserService {
 			return mapper.map(user, UserDTO.class);
 
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -146,8 +152,10 @@ class UserServiceImpl implements UserService {
 			return userDTO;
 
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -158,8 +166,10 @@ class UserServiceImpl implements UserService {
 		User user = userRepo.findById(id).orElseThrow(NoResultException::new);
 		if (user != null) {
 			userRepo.deleteById(id);
+			return true;
 		}
-		return null;
+		logger.error("not found user "+id);
+		return false;
 	}
 
 	@Override
@@ -177,8 +187,10 @@ class UserServiceImpl implements UserService {
 			return userResponse;
 
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 
@@ -190,11 +202,13 @@ class UserServiceImpl implements UserService {
 		try {
 			User user = userRepo.findByUserId(updatePassword.getUserId()).orElseThrow(NoResultException::new);
 			Boolean compare_password = BCrypt.checkpw(updatePassword.getOldPassword(), user.getPassword());
-			if (!compare_password)
+			if (!compare_password) {
+				logger.error("Bad request: Old Password wrong !!!");
 				throw new BadRequestAlertException("Bad request: Old Password wrong !!!", ENTITY_NAME,
 						"Invalid password");
-
+			}
 			if (!updatePassword.getNewPassword().equals(updatePassword.getConfirmPassword())) {
+				logger.error("Bad request: Password do not match");
 				throw new BadRequestAlertException("Bad request: Password do not match", ENTITY_NAME,
 						"Invalid password");
 			}
@@ -204,11 +218,12 @@ class UserServiceImpl implements UserService {
 			return userResponse;
 
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
-
 	}
 
 	@Override
@@ -238,8 +253,10 @@ class UserServiceImpl implements UserService {
 
 			return responseDTO;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}

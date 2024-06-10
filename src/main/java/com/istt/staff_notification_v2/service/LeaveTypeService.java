@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -52,12 +54,15 @@ class LeaveTypeServiceImpl implements LeaveTypeService {
 	private LeaveTypeRepo leaveTypeRepo;
 
 	private static final String ENTITY_NAME = "isttLeaveType";
+	
+	private static final Logger logger = LogManager.getLogger(LeaveTypeService.class);
 
 	@Override
 	@Transactional
 	public LeaveTypeDTO create(LeaveTypeDTO leaveTypeDTO) {
 		try {
 			if (leaveTypeRepo.findByLeavetypeName(leaveTypeDTO.getLeavetypeName()).isPresent()) {
+				logger.error("LeaveType Name already exists");
 				throw new BadRequestAlertException("LeaveType Name already exists", ENTITY_NAME, "exist");
 			}
 			ModelMapper mapper = new ModelMapper();
@@ -68,8 +73,10 @@ class LeaveTypeServiceImpl implements LeaveTypeService {
 			leaveTypeRepo.save(leaveType);
 			return leaveTypeDTO;
 		} catch (ResourceAccessException e) {
+			logger.error(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.error(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -83,10 +90,13 @@ class LeaveTypeServiceImpl implements LeaveTypeService {
 				leaveTypeRepo.deleteById(id);
 				return new ModelMapper().map(leaveType, LeaveTypeDTO.class);
 			}
+			logger.error("leavetype "+ id + " not found");
 			return null;
 		} catch (ResourceAccessException e) {
+			logger.error(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.error(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -115,8 +125,10 @@ class LeaveTypeServiceImpl implements LeaveTypeService {
 			responseDTO.setData(leaveTypeDTOs);
 			return responseDTO;
 		} catch (ResourceAccessException e) {
+			logger.error(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.error(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -125,14 +137,17 @@ class LeaveTypeServiceImpl implements LeaveTypeService {
 	@Transactional
 	public LeaveTypeDTO update(LeaveTypeDTO leaveTypeDTO) {
 		try {
-			if (leaveTypeRepo.findById(leaveTypeDTO.getLeavetypeId()).isEmpty())
+			if (leaveTypeRepo.findById(leaveTypeDTO.getLeavetypeId()).isEmpty()) {
+				logger.error("LeaveType not found");
 				throw new BadRequestAlertException("LeaveType not found", ENTITY_NAME, "Not found");
-
+			}
 			leaveTypeRepo.save(new ModelMapper().map(leaveTypeDTO, LeaveType.class));
 			return leaveTypeDTO;
 		} catch (ResourceAccessException e) {
+			logger.error(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.error(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -145,8 +160,10 @@ class LeaveTypeServiceImpl implements LeaveTypeService {
 			return leaveTypes.stream().map(leaveType -> new ModelMapper().map(leaveType, LeaveTypeDTO.class))
 					.collect(Collectors.toList());
 		} catch (ResourceAccessException e) {
+			logger.error(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.error(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -161,11 +178,15 @@ class LeaveTypeServiceImpl implements LeaveTypeService {
 				leaveTypeRepo.deleteAllInBatch(list);
 				return list.stream().map(leaveType -> new ModelMapper().map(leaveType, LeaveTypeDTO.class))
 						.collect(Collectors.toList());
-			}
+			}else {
+				logger.error("LeaveType empty");
 			throw new BadRequestAlertException("LeaveType empty", ENTITY_NAME, "invalid");
-		} catch (ResourceAccessException e) {
+			}
+			} catch (ResourceAccessException e) {
+				logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}

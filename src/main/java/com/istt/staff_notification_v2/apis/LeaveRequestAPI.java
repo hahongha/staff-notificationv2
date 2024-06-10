@@ -3,6 +3,8 @@ package com.istt.staff_notification_v2.apis;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +18,8 @@ import com.istt.staff_notification_v2.dto.MailRequestDTO;
 import com.istt.staff_notification_v2.dto.ResponseDTO;
 import com.istt.staff_notification_v2.dto.ResponseLeaveRequest;
 import com.istt.staff_notification_v2.dto.SearchLeaveRequest;
+import com.istt.staff_notification_v2.security.securityv2.CurrentUser;
+import com.istt.staff_notification_v2.security.securityv2.UserPrincipal;
 import com.istt.staff_notification_v2.service.LeaveRequestService;
 
 @RestController
@@ -25,14 +29,17 @@ public class LeaveRequestAPI {
 	private LeaveRequestService leaveRequestService;
 
 	private static final String ENTITY_NAME = "isttLeaveRequest";
+	private static final Logger logger = LogManager.getLogger(LeaveRequestAPI.class);
 
 	@PostMapping("")
-	public ResponseDTO<MailRequestDTO> create(@RequestBody MailRequestDTO mailRequestDTO) throws URISyntaxException {
+	public ResponseDTO<MailRequestDTO> create(@CurrentUser UserPrincipal currentuser,@RequestBody MailRequestDTO mailRequestDTO) throws URISyntaxException {
+		logger.info("create by :" + currentuser.getUsername());
 		if (mailRequestDTO.getLeaveRequestDTO().getRequestDate() == null
 				|| mailRequestDTO.getLeaveRequestDTO().getReason() == null
 				|| mailRequestDTO.getLeaveRequestDTO().getLeavetype() == null
 				|| mailRequestDTO.getLeaveRequestDTO().getEmployee() == null
 				|| mailRequestDTO.getLeaveRequestDTO().getEmployee().getEmail() == null) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missing_level");
 		}
 		leaveRequestService.create(mailRequestDTO);
@@ -41,9 +48,12 @@ public class LeaveRequestAPI {
 	}
 
 	@PostMapping("/changeStatusLeaveRequest")
-	public ResponseDTO<ResponseLeaveRequest> changeStatusLeaveRequest(
+	public ResponseDTO<ResponseLeaveRequest> changeStatusLeaveRequest(@CurrentUser UserPrincipal currentuser,
 			@RequestBody ResponseLeaveRequest responseLeaveRequest) throws URISyntaxException {
+		logger.info("create by :" + currentuser.getUsername());
+		
 		if (responseLeaveRequest.getLeaveqequestId() == null || responseLeaveRequest.getStatus() == null) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missing_data");
 		}
 		leaveRequestService.changeStatusLeaveRequest(responseLeaveRequest);
@@ -52,7 +62,8 @@ public class LeaveRequestAPI {
 	}
 
 	@PostMapping("/getLeaveRequest")
-	public ResponseDTO<List<LeaveRequestDTO>> getLeaveRequest(@RequestBody SearchLeaveRequest searchLeaveRequest) {
+	public ResponseDTO<List<LeaveRequestDTO>> getLeaveRequest(@CurrentUser UserPrincipal currentuser,@RequestBody SearchLeaveRequest searchLeaveRequest) {
+		logger.info("create by :" + currentuser.getUsername());
 		return ResponseDTO.<List<LeaveRequestDTO>>builder().code(String.valueOf(HttpStatus.OK.value()))
 				.data(leaveRequestService.searchLeaveRequest(searchLeaveRequest)).build();
 	}

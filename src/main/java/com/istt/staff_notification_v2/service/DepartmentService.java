@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 import javax.persistence.NoResultException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,6 +25,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 
+import com.istt.staff_notification_v2.apis.AttendanceAPI;
 import com.istt.staff_notification_v2.apis.errors.BadRequestAlertException;
 import com.istt.staff_notification_v2.dto.DepartmentDTO;
 import com.istt.staff_notification_v2.dto.ResponseDTO;
@@ -57,15 +60,17 @@ class DepartmentServiceImpl implements DepartmentService {
 	private DepartmentRepo departmentRepo;
 
 	private static final String ENTITY_NAME = "isttDepartment";
+	private static final Logger logger = LogManager.getLogger(AttendanceService.class);
 
 	@Transactional
 	@Override
 	public DepartmentDTO create(DepartmentDTO departmentDTO) {
 		try {
 
-			if (departmentRepo.findByDepartmentName(departmentDTO.getDepartmentName()).isPresent())
+			if (departmentRepo.findByDepartmentName(departmentDTO.getDepartmentName()).isPresent()) {
+				logger.error("Bad request: Department already exists");
 				throw new BadRequestAlertException("Bad request: Department already exists", ENTITY_NAME, "Exists");
-
+			}
 			ModelMapper mapper = new ModelMapper();
 			Department department = mapper.map(departmentDTO, Department.class);
 			department.setDepartmentId(UUID.randomUUID().toString().replaceAll("-", ""));
@@ -88,6 +93,7 @@ class DepartmentServiceImpl implements DepartmentService {
 				departmentRepo.deleteById(id);
 				return true;
 			}
+			logger.error("missing data");
 			return false;
 		} catch (ResourceAccessException e) {
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
@@ -132,12 +138,14 @@ class DepartmentServiceImpl implements DepartmentService {
 		try {
 			Optional<Department> departOptionalOptional = departmentRepo
 					.findByDepartmentId(departmentDTO.getDepartmentId());
-			if (departmentRepo.findByDepartmentId(departmentDTO.getDepartmentId()).isEmpty())
+			if (departmentRepo.findByDepartmentId(departmentDTO.getDepartmentId()).isEmpty()) {
+				logger.error("Department not found");
 				throw new BadRequestAlertException("Department not found", ENTITY_NAME, "Not found");
-
-			if (departmentRepo.findByDepartmentName(departmentDTO.getDepartmentName()).isPresent())
+			}
+			if (departmentRepo.findByDepartmentName(departmentDTO.getDepartmentName()).isPresent()) {
+				logger.error("Department already exists");
 				throw new BadRequestAlertException("Department already exists", ENTITY_NAME, "exist");
-
+			}
 			Department department = departOptionalOptional.get();
 			department.setDepartmentName(departmentDTO.getDepartmentName());
 			departmentRepo.save(department);
@@ -196,8 +204,10 @@ class DepartmentServiceImpl implements DepartmentService {
 			if (!list.isEmpty()) {
 				departmentRepo.deleteAllInBatch(list);
 				return list;
-			}
+			}else {
+				logger.error("Department empty");
 			throw new BadRequestAlertException("Department empty", ENTITY_NAME, "invalid");
+			}
 		} catch (ResourceAccessException e) {
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
@@ -209,6 +219,7 @@ class DepartmentServiceImpl implements DepartmentService {
 	public List<DepartmentDTO> getAll() {
 		try {
 			List<Department> departments = departmentRepo.findAll();
+			if(departments.size()<1) logger.error("Department empty");
 			return departments.stream().map(department -> new ModelMapper().map(department, DepartmentDTO.class))
 					.collect(Collectors.toList());
 		} catch (ResourceAccessException e) {

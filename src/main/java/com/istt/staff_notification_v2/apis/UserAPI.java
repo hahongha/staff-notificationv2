@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,11 +39,14 @@ public class UserAPI {
 	private UserService userService;
 
 	private static final String ENTITY_NAME = "isttUser";
+	private static final Logger logger = LogManager.getLogger(UserAPI.class);
 
 	@PostMapping("")
-	public ResponseDTO<UserDTO> create(@RequestBody UserDTO userDTO) throws URISyntaxException {
+	public ResponseDTO<UserDTO> create(@CurrentUser UserPrincipal currentuser,@RequestBody UserDTO userDTO) throws URISyntaxException {
+		logger.info("create by :" + currentuser.getUsername());
 		System.out.println("=========================username: " + userDTO.getUsername());
 		if (userDTO.getUsername() == null || userDTO.getPassword() == null || userDTO.getRoles() == null) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missing");
 		}
 		userService.create(userDTO);
@@ -63,13 +68,16 @@ public class UserAPI {
 	}
 
 	@PostMapping("/search")
-	public ResponseDTO<List<UserResponse>> search(@RequestBody @Valid SearchDTO searchDTO) {
+	public ResponseDTO<List<UserResponse>> search(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid SearchDTO searchDTO) {
+		logger.info("create by :" + currentuser.getUsername());
 		return userService.search(searchDTO);
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseDTO<Void> delete(@PathVariable(value = "id") String id) throws URISyntaxException {
+	public ResponseDTO<Void> delete(@CurrentUser UserPrincipal currentuser,@PathVariable(value = "id") String id) throws URISyntaxException {
+		logger.info("create by :" + currentuser.getUsername());
 		if (id == null) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing id", ENTITY_NAME, "missing_id");
 		}
 		userService.delete(id);

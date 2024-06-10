@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -77,6 +79,7 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 	private LeaveTypeRepo leaveTypeRepo;
 
 	private static final String ENTITY_NAME = "isttLeaveRequestType";
+	private static final Logger logger = LogManager.getLogger(LeaveRequestService.class);
 
 	private Boolean sendNotification(@RequestBody MailRequestDTO mailRequestDTO) {
 
@@ -91,6 +94,7 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 			return true;
 
 		} catch (Exception e) {
+			logger.trace("can not send mail");
 			return false;
 
 		}
@@ -106,23 +110,27 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 			LeaveRequest leaveRequest = mapper.map(leaveRequestDTO, LeaveRequest.class);
 			// Validate duration:
 			System.out.println("leaveRequestDTO.getDuration(): " + leaveRequestDTO.getDuration());
-			if (leaveRequestDTO.getDuration() <= 0.0 || leaveRequestDTO.getDuration() % 0.5 != 0.0)
+			if (leaveRequestDTO.getDuration() <= 0.0 || leaveRequestDTO.getDuration() % 0.5 != 0.0) {
+				logger.error("Bad request: Invalid duration");
 				throw new BadRequestAlertException("Bad request: Invalid duration", ENTITY_NAME, "Invalid");
+			}
 
 			leaveRequest.setLeaveqequestId(UUID.randomUUID().toString().replaceAll("-", ""));
 
 			// Validate employeeId in leaveRequest
-			if (leaveRequestDTO.getEmployee().getEmployeeId() == null)
+			if (leaveRequestDTO.getEmployee().getEmployeeId() == null) {
+				logger.error("Bad request: Employee not found!");
 				throw new BadRequestAlertException("Bad request: Employee not found!", ENTITY_NAME, "Not Found!");
-
+			}
 			// map employee if true
 			Employee employee = employeeRepo.findByEmployeeId(leaveRequestDTO.getEmployee().getEmployeeId())
 					.orElseThrow(NoResultException::new);
 			leaveRequest.setEmployee(employee);
 
-			if (leaveRequestDTO.getLeavetype().getLeavetypeId() == null)
+			if (leaveRequestDTO.getLeavetype().getLeavetypeId() == null) {
+				logger.error("Bad request: Missing LeaveTypeId");
 				throw new BadRequestAlertException("Bad request: Missing LeaveTypeId", ENTITY_NAME, "Missing");
-
+			}
 			// default set status is NOT_APPROVED if normal
 //			LeaveType leaveType = leaveTypeRepo.findByLeavetypeId(leaveRequestDTO.getLeavetype().getLeavetypeId())
 //					.orElseThrow(NoResultException::new);
@@ -135,8 +143,11 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 			leaveRequest.setStatus(props.getSTATUS_LEAVER_REQUEST().get(StatusLeaveRequestRef.WAITING.ordinal()));
 
 			// Valid only send to a employee
-			if (mailRequestDTO.getRecceiverList().size() != 1)
+			if (mailRequestDTO.getRecceiverList().size() != 1) {
+				logger.warn("Bad request: Can only be sent to 1 person");
 				throw new BadRequestAlertException("Bad request: Can only be sent to 1 person", ENTITY_NAME, "Invalid");
+			
+			}
 			leaveRequest.setReceiver(mailRequestDTO.getRecceiverList().get(0).getEmployeeId());
 
 			// Handle send mail:
@@ -147,9 +158,11 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 			Optional<List<Employee>> employeeDependences = employeeRepo.findByEmployeeIds(mailRequestDTO
 					.getRecceiverList().stream().map(item -> item.getEmployeeId()).collect(Collectors.toList()));
 
-			if (employeeDependences.isEmpty())
+			if (employeeDependences.isEmpty()) {
+				logger.error("Bad request: Not found employee dependence in employee` department");
 				throw new BadRequestAlertException("Bad request: Not found employee dependence in employee` department",
 						ENTITY_NAME, "Not found");
+			}
 
 			MailRequestDTO mailRequestEachEmployee = new MailRequestDTO();
 			mailRequestEachEmployee.setLeaveRequestDTO(leaveRequestDTO);
@@ -158,15 +171,18 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 			mailRequestEachEmployee.setSubject(mailRequestDTO.getSubject());
 
 			// Excute send mail
-			if (!sendNotification(mailRequestEachEmployee))
+			if (!sendNotification(mailRequestEachEmployee)) {
+				logger.error(Status.INTERNAL_SERVER_ERROR);
 				throw Problem.builder().withStatus(Status.INTERNAL_SERVER_ERROR).withDetail("ERROR SEND MAIL").build();
-
+			}
 			// Commit leaveRequest
 			leaveRequestRepo.save(leaveRequest);
 			return mailRequestDTO;
 		} catch (ResourceAccessException e) {
+			logger.error(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.error(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 
@@ -195,23 +211,28 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 	public ResponseLeaveRequest changeStatusLeaveRequest(ResponseLeaveRequest responseLeaveRequest) {
 		try {
 			if (!props.getSTATUS_LEAVER_REQUEST().contains(responseLeaveRequest.getStatus())) {
+				logger.error("Bad request: Invalid STATUS_LEAVER_REQUEST");
 				throw new BadRequestAlertException("Bad request: Invalid STATUS_LEAVER_REQUEST", ENTITY_NAME,
 						"Invalid");
 			}
 
 			Employee employee = employeeRepo.findByEmployeeId(responseLeaveRequest.getByEmployeeId())
 					.orElseThrow(NoResultException::new);
-
+			if(employee== null) logger.error("not found employee");
 			LeaveRequest leaveRequest = leaveRequestRepo.findByLeaveqequestId(responseLeaveRequest.getLeaveqequestId())
 					.orElseThrow(NoResultException::new);
 
-			if (leaveRequest.getStatus().equals(StatusLeaveRequestRef.APPROVED.toString()))
+			if (leaveRequest.getStatus().equals(StatusLeaveRequestRef.APPROVED.toString())) {
+				logger.error("Bad request: This request has been approved by others");
 				throw new BadRequestAlertException("Bad request: This request has been approved by others", ENTITY_NAME,
 						"APPROVED");
+			}
 
-			if (employee.getEmployeeId().equals(leaveRequest.getEmployee().getEmployeeId()))
+			if (employee.getEmployeeId().equals(leaveRequest.getEmployee().getEmployeeId())) {
+				logger.error("Bad request: Must be the superior approval");
 				throw new BadRequestAlertException("Bad request: Must be the superior approval", ENTITY_NAME,
 						"Not role");
+			}
 
 			leaveRequest.setAnrreason(responseLeaveRequest.getAnrreason());
 			leaveRequest.setStatus(responseLeaveRequest.getStatus());
@@ -220,6 +241,7 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 			leaveRequestRepo.save(leaveRequest);
 
 			if (responseLeaveRequest.getStatus().equals(StatusLeaveRequestRef.APPROVED.toString())) {
+				logger.info("create attendance then approved");
 				AttendanceDTO attendanceDTO = new AttendanceDTO();
 				attendanceDTO.setApprovedBy(responseLeaveRequest.getByEmployeeId());
 				attendanceDTO.setLeaveRequest(leaveRequest);
@@ -234,14 +256,17 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 				attendanceDTO.setEndDate(leaveRequest.getStartDate());
 
 				attendanceService.create(attendanceDTO);
+				logger.info("create attendance then approved successful ");
 			}
 			// handle date
 
 			return responseLeaveRequest;
 
 		} catch (ResourceAccessException e) {
+			logger.error(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.error(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -251,9 +276,11 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 		try {
 //			if (searchLeaveRequest.getEmail() != null && searchLeaveRequest.getStatus() == null && searchLeaveRequest.getStartDate() == null && searchLeaveRequest.getEndDate() == null) {
 			Employee employee = employeeRepo.findByEmail(searchLeaveRequest.getEmail());
-			if (employee == null)
+			if (employee == null) {
+				logger.error("Bad request: Email nost found");
 				throw new BadRequestAlertException("Bad request: Email nost found", ENTITY_NAME, "Not found");
-//			}
+			}
+			
 
 			List<LeaveRequest> leaveRequestsOptional = leaveRequestRepo.findByEmployee(employee).get();
 
@@ -261,8 +288,10 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 					.map(leaveRequest -> new ModelMapper().map(leaveRequest, LeaveRequestDTO.class))
 					.collect(Collectors.toList());
 		} catch (ResourceAccessException e) {
+			logger.error(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.error(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}

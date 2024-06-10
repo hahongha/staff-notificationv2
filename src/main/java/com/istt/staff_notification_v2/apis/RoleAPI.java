@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,12 +34,14 @@ public class RoleAPI {
 	private RoleService roleService;
 
 	private static final String ENTITY_NAME = "isttRole";
+	private static final Logger logger = LogManager.getLogger(RoleAPI.class);
 
 	@PostMapping("")
 //	@PreAuthorize("hasAuthority('ADMIN') and hasAuthority('USER')")
-	public ResponseDTO<RoleDTO> create(@RequestBody RoleDTO roleDTO) throws URISyntaxException {
-
+	public ResponseDTO<RoleDTO> create(@CurrentUser UserPrincipal currentuser,@RequestBody RoleDTO roleDTO) throws URISyntaxException {
+		logger.info("create by :" + currentuser.getUsername());
 		if (roleDTO.getRole() == null) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missing_role");
 		}
 		roleService.create(roleDTO);
@@ -47,7 +51,9 @@ public class RoleAPI {
 	@DeleteMapping("/{id}")
 	public ResponseDTO<Void> delete(@CurrentUser UserPrincipal currentUser, @PathVariable(value = "id") String id)
 			throws URISyntaxException {
+		logger.info("create by :" + currentUser.getUsername());
 		if (id == null) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missing_id");
 		}
 		roleService.delete(id);
@@ -55,14 +61,16 @@ public class RoleAPI {
 	}
 
 	@PostMapping("/search")
-	public ResponseDTO<List<RoleDTO>> search(@RequestBody @Valid SearchDTO searchDTO) {
+	public ResponseDTO<List<RoleDTO>> search(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid SearchDTO searchDTO) {
+		logger.info("create by :" + currentuser.getUsername());
 		return roleService.search(searchDTO);
 	}
 
 	@DeleteMapping("/ids")
-	public ResponseDTO<List<String>> deletebyListId(@RequestBody @Valid List<String> ids) throws URISyntaxException {
-
+	public ResponseDTO<List<String>> deletebyListId(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid List<String> ids) throws URISyntaxException {
+		logger.info("create by :" + currentuser.getUsername());
 		if (ids.isEmpty()) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing roles", ENTITY_NAME, "missing_roles");
 		}
 		roleService.deleteAllbyIds(ids);
@@ -70,14 +78,16 @@ public class RoleAPI {
 	}
 
 	@PutMapping("/")
-	public ResponseDTO<RoleDTO> update(@RequestBody @Valid RoleDTO roleDTO) throws IOException {
+	public ResponseDTO<RoleDTO> update(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid RoleDTO roleDTO) throws IOException {
+		logger.info("create by :" + currentuser.getUsername());
 		roleService.update(roleDTO);
 		return ResponseDTO.<RoleDTO>builder().code(String.valueOf(HttpStatus.OK.value())).data(roleDTO).build();
 
 	}
 
 	@GetMapping("/all")
-	public ResponseDTO<List<RoleDTO>> getAll() throws IOException {
+	public ResponseDTO<List<RoleDTO>> getAll(@CurrentUser UserPrincipal currentuser) throws IOException {
+		logger.info("create by :" + currentuser.getUsername());
 		return ResponseDTO.<List<RoleDTO>>builder().code(String.valueOf(HttpStatus.OK.value()))
 				.data(roleService.getAll()).build();
 	}

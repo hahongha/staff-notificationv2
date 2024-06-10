@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 import javax.persistence.NoResultException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -55,22 +57,29 @@ class RoleServiceImpl implements RoleService {
 	private RoleRepo roleRepo;
 
 	private static final String ENTITY_NAME = "isttRole";
+	
+	private static final Logger logger = LogManager.getLogger(RoleService.class);
 
 	@Transactional
 	@Override
 	public RoleDTO create(RoleDTO roleDTO) {
 		try {
 
-			if (roleRepo.findByRoleName(roleDTO.getRole()).isPresent())
+			if (roleRepo.findByRoleName(roleDTO.getRole()).isPresent()) {
+				logger.error("Bad request: Role already exists");
 				throw new BadRequestAlertException("Bad request: Role already exists", ENTITY_NAME, "Exists");
+			
+			}
 			ModelMapper mapper = new ModelMapper();
 			Role role = mapper.map(roleDTO, Role.class);
 			role.setRoleId(UUID.randomUUID().toString().replaceAll("-", ""));
 			roleRepo.save(role);
 			return roleDTO;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -86,8 +95,10 @@ class RoleServiceImpl implements RoleService {
 			}
 			return null;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -116,8 +127,10 @@ class RoleServiceImpl implements RoleService {
 			responseDTO.setData(roleDTOs);
 			return responseDTO;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -126,14 +139,17 @@ class RoleServiceImpl implements RoleService {
 	@Transactional
 	public RoleDTO update(RoleDTO roleDTO) {
 		try {
-			if (roleRepo.findById(roleDTO.getRoleId()).isEmpty())
+			if (roleRepo.findById(roleDTO.getRoleId()).isEmpty()) {
+				logger.error("Role not found");
 				throw new BadRequestAlertException("Role not found", ENTITY_NAME, "Not found");
-
+			}
 			roleRepo.save(new ModelMapper().map(roleDTO, Role.class));
 			return roleDTO;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -144,8 +160,10 @@ class RoleServiceImpl implements RoleService {
 			Role role = roleRepo.findById(id).orElseThrow(NoResultException::new);
 			return new ModelMapper().map(role, RoleDTO.class);
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 

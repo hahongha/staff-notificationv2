@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,11 +34,14 @@ public class LevelAPI {
 	private LevelService levelService;
 
 	private static final String ENTITY_NAME = "isttLevel";
+	private static final Logger logger = LogManager.getLogger(LevelAPI.class);
 
 	@PostMapping("")
 //	@PreAuthorize("hasAuthority('ADMIN') and hasAuthority('USER')")
-	public ResponseDTO<LevelDTO> create(@RequestBody LevelDTO levelDTO) throws URISyntaxException {
+	public ResponseDTO<LevelDTO> create(@CurrentUser UserPrincipal currentuser,@RequestBody LevelDTO levelDTO) throws URISyntaxException {
+		logger.info("create by :" + currentuser.getUsername());
 		if (levelDTO.getLevelCode() == null || levelDTO.getLevelName() == null) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missing_level");
 		}
 		levelService.create(levelDTO);
@@ -46,7 +51,9 @@ public class LevelAPI {
 	@DeleteMapping("/{id}")
 	public ResponseDTO<Void> delete(@CurrentUser UserPrincipal currentUser, @PathVariable(value = "id") String id)
 			throws URISyntaxException {
+		logger.info("create by :" + currentUser.getUsername());
 		if (id == null) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missing_id");
 		}
 		levelService.delete(id);
@@ -54,14 +61,16 @@ public class LevelAPI {
 	}
 
 	@PostMapping("/search")
-	public ResponseDTO<List<LevelDTO>> search(@RequestBody @Valid SearchDTO searchDTO) {
+	public ResponseDTO<List<LevelDTO>> search(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid SearchDTO searchDTO) {
+		logger.info("create by :" + currentuser.getUsername());
 		return levelService.search(searchDTO);
 	}
 
 	@DeleteMapping("/ids")
-	public ResponseDTO<List<String>> deletebyListId(@RequestBody @Valid List<String> ids) throws URISyntaxException {
-
+	public ResponseDTO<List<String>> deletebyListId(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid List<String> ids) throws URISyntaxException {
+		logger.info("create by :" + currentuser.getUsername());
 		if (ids.isEmpty()) {
+			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing levels", ENTITY_NAME, "missing_levels");
 		}
 		levelService.deleteAllbyIds(ids);
@@ -69,14 +78,16 @@ public class LevelAPI {
 	}
 
 	@PutMapping("/")
-	public ResponseDTO<LevelDTO> update(@RequestBody @Valid LevelDTO levelDTO) throws IOException {
+	public ResponseDTO<LevelDTO> update(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid LevelDTO levelDTO) throws IOException {
+		logger.error("missing data");
 		levelService.update(levelDTO);
 		return ResponseDTO.<LevelDTO>builder().code(String.valueOf(HttpStatus.OK.value())).data(levelDTO).build();
 
 	}
 
 	@GetMapping("/all")
-	public ResponseDTO<List<LevelDTO>> getAll() throws IOException {
+	public ResponseDTO<List<LevelDTO>> getAll(@CurrentUser UserPrincipal currentuser) throws IOException {
+		logger.info("create by :" + currentuser.getUsername());
 		return ResponseDTO.<List<LevelDTO>>builder().code(String.valueOf(HttpStatus.OK.value()))
 				.data(levelService.getAll()).build();
 	}

@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -53,11 +55,14 @@ class LevelServiceImpl implements LevelService {
 
 	private static final String ENTITY_NAME = "isttLevel";
 
+	private static final Logger logger = LogManager.getLogger(LevelService.class);
+	
 	@Override
 	@Transactional
 	public LevelDTO create(LevelDTO levelDTO) {
 		try {
 			if (levelRepo.findByLevelNameorLevelCode(levelDTO.getLevelName(), levelDTO.getLevelCode()).isPresent()) {
+				logger.error("Level Name or Level code already exists");
 				throw new BadRequestAlertException("Level Name or Level code already exists", ENTITY_NAME, "exist");
 			}
 			ModelMapper mapper = new ModelMapper();
@@ -66,8 +71,10 @@ class LevelServiceImpl implements LevelService {
 			levelRepo.save(level);
 			return levelDTO;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -81,10 +88,13 @@ class LevelServiceImpl implements LevelService {
 				levelRepo.deleteById(id);
 				return new ModelMapper().map(level, LevelDTO.class);
 			}
+			logger.error("not found level "+id);
 			return null;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -113,8 +123,10 @@ class LevelServiceImpl implements LevelService {
 			responseDTO.setData(levelDTOs);
 			return responseDTO;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 
@@ -124,14 +136,17 @@ class LevelServiceImpl implements LevelService {
 	@Transactional
 	public LevelDTO update(LevelDTO levelDTO) {
 		try {
-			if (levelRepo.findById(levelDTO.getLevelId()).isEmpty())
+			if (levelRepo.findById(levelDTO.getLevelId()).isEmpty()) {
+				logger.error("Level not found");
 				throw new BadRequestAlertException("Level not found", ENTITY_NAME, "Not found");
-
+			}
 			levelRepo.save(new ModelMapper().map(levelDTO, Level.class));
 			return levelDTO;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -144,8 +159,10 @@ class LevelServiceImpl implements LevelService {
 			return levels.stream().map(level -> new ModelMapper().map(level, LevelDTO.class))
 					.collect(Collectors.toList());
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -160,11 +177,16 @@ class LevelServiceImpl implements LevelService {
 				levelRepo.deleteAllInBatch(list);
 				return list.stream().map(level -> new ModelMapper().map(level, LevelDTO.class))
 						.collect(Collectors.toList());
+			}else {
+			
+				throw new BadRequestAlertException("Level empty", ENTITY_NAME, "invalid");
+		
 			}
-			throw new BadRequestAlertException("Level empty", ENTITY_NAME, "invalid");
-		} catch (ResourceAccessException e) {
+			} catch (ResourceAccessException e) {
+				logger.trace(Status.EXPECTATION_FAILED);
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE);
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
