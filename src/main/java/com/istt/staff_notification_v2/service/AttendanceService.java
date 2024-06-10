@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import javax.persistence.NoResultException;
 import javax.transaction.Transactional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 
+import com.istt.staff_notification_v2.apis.AttendanceAPI;
 import com.istt.staff_notification_v2.apis.errors.BadRequestAlertException;
 import com.istt.staff_notification_v2.configuration.ApplicationProperties;
 import com.istt.staff_notification_v2.configuration.ApplicationProperties.StatusEmployeeRef;
@@ -70,6 +73,8 @@ class AttendanceServiceImpl implements AttendanceService {
 	ApplicationProperties props;
 
 	private static final String ENTITY_NAME = "isttAttendance";
+	private static final Logger logger = LogManager.getLogger(AttendanceService.class);
+
 
 	@Transactional
 	@Override
@@ -79,24 +84,31 @@ class AttendanceServiceImpl implements AttendanceService {
 			Attendance attendance = new ModelMapper().map(attendanceDTO, Attendance.class);
 			attendance.setAttendanceId(UUID.randomUUID().toString().replaceAll("-", ""));
 
+			//nen validate 1 nguoi chi co 1 attendance trong 1 ngay
+			//có thể sử dụng current user tu jwt de lay ra approver khong
 			Optional<Employee> employeeCreateOptional = employeeRepo.findByEmployeeId(attendanceDTO.getApprovedBy());
 			if (employeeCreateOptional.isEmpty())
 				throw new BadRequestAlertException("Employee create not found.", ENTITY_NAME, "Not found");
-
+//
 			Optional<Employee> employeeOptional = employeeRepo
 					.findByEmployeeId(attendanceDTO.getEmployee().getEmployeeId());
-			if (employeeOptional.isEmpty())
+			if (employeeOptional.isEmpty()) {
+				logger.error("Employee not found.");
 				throw new BadRequestAlertException("Employee not found.", ENTITY_NAME, "Not found");
-
+			}
+//			System.err.println(attendance.getEmployee().getEmployeeId());
 			Employee employee = employeeOptional.get();
-			if (employee.getStatus().equals(StatusEmployeeRef.SUSPEND.toString()))
+			if (employee.getStatus().equals(StatusEmployeeRef.SUSPEND.toString())) {
+				logger.error("This employee has been suspended");
 				throw new BadRequestAlertException("This employee has been suspended", ENTITY_NAME, "Suspend");
-
+			}
 			attendance.setEmployee(employee);
-
-			if (!props.getTYPE_ATTENDANCE().contains(attendanceDTO.getType()))
+//			System.err.println(attendance.getEmployee().getEmployeeId());
+			if (!props.getTYPE_ATTENDANCE().contains(attendanceDTO.getType())) {
+				logger.error("Invalid TYPE ATTENDANCE");
 				throw new BadRequestAlertException("Invalid TYPE ATTENDANCE", ENTITY_NAME, "Invalid");
-
+			}
+//			System.err.println(attendance.getType());
 			attendanceRepo.save(attendance);
 
 			return attendanceDTO;
@@ -114,22 +126,26 @@ class AttendanceServiceImpl implements AttendanceService {
 			Attendance attendance = new ModelMapper().map(attendanceDTO, Attendance.class);
 
 			Optional<Employee> employeeCreateOptional = employeeRepo.findById(attendanceDTO.getUpdateBy());
-			if (employeeCreateOptional.isEmpty())
+			if (employeeCreateOptional.isEmpty()) {
+				logger.error("Employee update not found.");
 				throw new BadRequestAlertException("Employee update not found.", ENTITY_NAME, "Not found");
-
+			}
 			Optional<Employee> employeeOptional = employeeRepo.findById(attendanceDTO.getEmployee().getEmployeeId());
-			if (employeeOptional.isEmpty())
+			if (employeeOptional.isEmpty()) {
+				logger.error("Employee not found.");
 				throw new BadRequestAlertException("Employee not found.", ENTITY_NAME, "Not found");
-
+			}
 			Employee employee = employeeOptional.get();
-			if (employee.getStatus().equals(StatusEmployeeRef.SUSPEND.toString()))
+			if (employee.getStatus().equals(StatusEmployeeRef.SUSPEND.toString())) {
+				logger.error("This employee has been suspended");
 				throw new BadRequestAlertException("This employee has been suspended", ENTITY_NAME, "Suspend");
-
+			}
 			attendance.setEmployee(employee);
 
-			if (!props.getTYPE_ATTENDANCE().contains(attendanceDTO.getType()))
+			if (!props.getTYPE_ATTENDANCE().contains(attendanceDTO.getType())) {
+				logger.error("Invalid TYPE ATTENDANCE");
 				throw new BadRequestAlertException("Invalid STATUS ATTENDANCE", ENTITY_NAME, "Invalid");
-
+			}
 			attendanceRepo.save(attendance);
 
 			return attendanceDTO;
@@ -146,8 +162,10 @@ class AttendanceServiceImpl implements AttendanceService {
 		Attendance attendance = attendanceRepo.findById(id).orElseThrow(NoResultException::new);
 		if (attendance != null) {
 			attendanceRepo.deleteById(id);
+			return true;
 		}
-		return null;
+		logger.error("missing data");
+		return false;
 	}
 
 	@Transactional
@@ -158,6 +176,7 @@ class AttendanceServiceImpl implements AttendanceService {
 			attendanceRepo.deleteAllById(ids);
 			return true;
 		}
+		logger.error("missing data");
 		return false;
 	}
 
@@ -165,8 +184,10 @@ class AttendanceServiceImpl implements AttendanceService {
 	public AttendanceDTO get(String id) {
 		ModelMapper mapper = new ModelMapper();
 		Attendance attendance = attendanceRepo.findById(id).get();
-		if (attendance == null)
+		if (attendance == null) {
+			logger.error("missing data");
 			throw new NoResultException();
+		}
 		return mapper.map(attendance, AttendanceDTO.class);
 	}
 
@@ -206,6 +227,7 @@ class AttendanceServiceImpl implements AttendanceService {
 	@Override
 	public List<AttendanceDTO> getStatus(String type) {
 		if (!props.getTYPE_ATTENDANCE().contains(type)) {
+			logger.error("not have status");
 			throw new BadRequestAlertException("not have status", ENTITY_NAME, "exists");
 		}
 
@@ -213,8 +235,10 @@ class AttendanceServiceImpl implements AttendanceService {
 
 		ModelMapper mapper = new ModelMapper();
 
-		if (attendances.size() < 1)
+		if (attendances.size() < 1) {
+			logger.error("not have status");
 			return null;
+		}
 		return attendances.stream().map(attendance -> mapper.map(attendance, AttendanceDTO.class))
 				.collect(Collectors.toList());
 	}
