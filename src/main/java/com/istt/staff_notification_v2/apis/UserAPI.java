@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,6 +24,9 @@ import com.istt.staff_notification_v2.dto.SearchDTO;
 import com.istt.staff_notification_v2.dto.UpdatePassword;
 import com.istt.staff_notification_v2.dto.UserDTO;
 import com.istt.staff_notification_v2.dto.UserResponse;
+import com.istt.staff_notification_v2.security.securityv2.CurrentUser;
+import com.istt.staff_notification_v2.security.securityv2.JwtTokenProvider;
+import com.istt.staff_notification_v2.security.securityv2.UserPrincipal;
 import com.istt.staff_notification_v2.service.UserService;
 
 @RestController
@@ -71,4 +75,11 @@ public class UserAPI {
 		userService.delete(id);
 		return ResponseDTO.<Void>builder().code(String.valueOf(HttpStatus.OK.value())).build();
 	}
+	
+	@GetMapping("/user/me")
+    public UserResponse getCurrentUser(@CurrentUser UserPrincipal currentUser) {
+		System.err.println(currentUser.getUsername());
+        UserResponse userDTO = userService.get(currentUser.getUser_id());
+        return userDTO;
+    }
 }

@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,7 @@ import com.istt.staff_notification_v2.entity.Role;
 import com.istt.staff_notification_v2.entity.User;
 import com.istt.staff_notification_v2.repository.RoleRepo;
 import com.istt.staff_notification_v2.repository.UserRepo;
+import com.istt.staff_notification_v2.security.securityv2.UserPrincipal;
 
 public interface UserService {
 	UserDTO create(UserDTO userDTO);
@@ -59,6 +61,8 @@ public interface UserService {
 	UserResponse updatePassword(UpdatePassword updatePassword);
 
 	ResponseDTO<List<UserResponse>> search(SearchDTO searchDTO);
+	
+	UserPrincipal getUserByJwt();
 }
 
 @Service
@@ -110,7 +114,7 @@ class UserServiceImpl implements UserService {
 
 	@Override
 	public UserDTO findByName(String name) {
-		// TODO Auto-generated method stub
+		
 		return null;
 	}
 
@@ -238,6 +242,12 @@ class UserServiceImpl implements UserService {
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
+	}
+
+	@Override
+	public UserPrincipal getUserByJwt() {
+		UserPrincipal user = (UserPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		return user;
 	}
 
 }

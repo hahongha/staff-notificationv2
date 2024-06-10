@@ -20,6 +20,8 @@ import com.istt.staff_notification_v2.apis.errors.BadRequestAlertException;
 import com.istt.staff_notification_v2.dto.AttendanceDTO;
 import com.istt.staff_notification_v2.dto.ResponseDTO;
 import com.istt.staff_notification_v2.dto.SearchDTO;
+import com.istt.staff_notification_v2.security.securityv2.CurrentUser;
+import com.istt.staff_notification_v2.security.securityv2.UserPrincipal;
 import com.istt.staff_notification_v2.service.AttendanceService;
 
 @RestController
@@ -31,12 +33,14 @@ public class AttendanceAPI {
 	private static final String ENTITY_NAME = "isttAttendance";
 
 	@PostMapping("")
-	public ResponseDTO<AttendanceDTO> create(@RequestBody @Valid AttendanceDTO attendanceDTO)
+	public ResponseDTO<AttendanceDTO> create(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid AttendanceDTO attendanceDTO)
 			throws URISyntaxException {
 		if (attendanceDTO.getStartDate() == null || attendanceDTO.getEndDate() == null) {
 			throw new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missing");
 		}
-
+		
+//		attendanceDTO.setUpdateBy(currentuser.getUser_id().toString());
+		
 		attendanceService.create(attendanceDTO);
 		return ResponseDTO.<AttendanceDTO>builder().code(String.valueOf(HttpStatus.OK.value())).data(attendanceDTO)
 				.build();

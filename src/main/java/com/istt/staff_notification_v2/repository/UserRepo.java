@@ -24,7 +24,6 @@ public interface UserRepo extends JpaRepository<User, String> {
 	Optional<User> findByUserId(@Param("x") String s);
 
 	Optional<User> findByAccessToken(String accesstoken);
-
 	@Query("SELECT u FROM User u ")
 	Page<User> getAll(@Param("x") String value, Pageable pageable);
 
