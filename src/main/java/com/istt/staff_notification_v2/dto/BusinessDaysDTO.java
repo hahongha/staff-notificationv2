@@ -7,7 +7,9 @@ import lombok.Data;
 public class BusinessDaysDTO {
 	private String bussinessdaysId;
 	
-	private Date date;
+	private Date startdate;
+	
+	private Date enddate;
 	
 	private String type;
 	

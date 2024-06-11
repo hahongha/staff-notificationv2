@@ -42,8 +42,9 @@ public class BusinessDaysAPI {
 	public ResponseDTO<BusinessDaysDTO> create(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid BusinessDaysDTO businessDaysDTO)
 			throws URISyntaxException {
 		logger.info("create by :" + currentuser.getUsername());
-		if ( businessDaysDTO.getDate() == null
+		if ( businessDaysDTO.getStartdate() == null
 				|| businessDaysDTO.getType()== null
+				||businessDaysDTO.getEnddate() == null
 				) {
 			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing data", ENTITY_NAME, "missin_name");
