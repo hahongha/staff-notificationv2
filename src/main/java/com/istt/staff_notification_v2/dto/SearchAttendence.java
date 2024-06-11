@@ -9,18 +9,18 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 @Data
-public class BusinessDaysDTO {
-	private String bussinessdaysId;
-	
+public class SearchAttendence {
+
+	private SearchDTO search;
+
 	@DateTimeFormat(pattern = "dd/MM/yyyy")
 	@JsonFormat(pattern="dd/MM/yyyy")
-	private Date startdate;
-	
-	@JsonFormat(pattern="dd/MM/yyyy")
+	private Date startDate;
+
 	@DateTimeFormat(pattern = "dd/MM/yyyy")
-	private Date enddate;
-	
+	@JsonFormat(pattern="dd/MM/yyyy")
+	private Date endDate;
+
 	private String type;
-	
-	private String description;
+
 }

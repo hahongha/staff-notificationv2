@@ -24,6 +24,7 @@ import com.istt.staff_notification_v2.dto.AttendanceDTO;
 import com.istt.staff_notification_v2.dto.BusinessDaysDTO;
 import com.istt.staff_notification_v2.dto.DepartmentDTO;
 import com.istt.staff_notification_v2.dto.ResponseDTO;
+import com.istt.staff_notification_v2.dto.SearchAttendence;
 import com.istt.staff_notification_v2.dto.SearchDTO;
 import com.istt.staff_notification_v2.security.securityv2.CurrentUser;
 import com.istt.staff_notification_v2.security.securityv2.UserPrincipal;
@@ -98,9 +99,15 @@ public class BusinessDaysAPI {
 	}
 	
 	@PostMapping("/searchByType")
-	public ResponseDTO<List<BusinessDaysDTO>> search(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid SearchDTO searchDTO) {
+	public ResponseDTO<List<BusinessDaysDTO>> searchbyType(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid SearchDTO searchDTO) {
 		logger.info("Create by"+ currentuser.getUsername());
 		return businessDaysService.searchByType(searchDTO);
+	}
+	
+	@PostMapping("/search")
+	public ResponseDTO<List<BusinessDaysDTO>> search(@RequestBody @Valid SearchAttendence searchDTO) {
+//		logger.info("Create by"+ currentuser.getUsername());
+		return businessDaysService.search(searchDTO);
 	}
 	
 	

@@ -28,6 +28,7 @@ import com.istt.staff_notification_v2.configuration.ApplicationProperties;
 import com.istt.staff_notification_v2.dto.AttendanceDTO;
 import com.istt.staff_notification_v2.dto.BusinessDaysDTO;
 import com.istt.staff_notification_v2.dto.ResponseDTO;
+import com.istt.staff_notification_v2.dto.SearchAttendence;
 import com.istt.staff_notification_v2.dto.SearchDTO;
 import com.istt.staff_notification_v2.entity.Attendance;
 import com.istt.staff_notification_v2.entity.BusinessDays;
@@ -35,14 +36,13 @@ import com.istt.staff_notification_v2.repository.BusinessDaysRepo;
 
 public interface BusinessDaysService {
 	List<BusinessDaysDTO> getAll();
-	ResponseDTO<List<BusinessDays>> search(SearchDTO searchDTO);
+	ResponseDTO<List<BusinessDaysDTO>> search(SearchAttendence searchAttendence);
 	BusinessDaysDTO get(String id);
 	List<BusinessDaysDTO> findByDescription(String description);
 	BusinessDaysDTO create(BusinessDaysDTO businessDaysDTO);
 	BusinessDaysDTO update(BusinessDaysDTO businessDaysDTO);
 	Boolean delete(String id);
 	Boolean deleteByListId(List<String> ids);
-	
 	ResponseDTO<List<BusinessDaysDTO>> searchByType(SearchDTO searchDTO);
 }
 @Service
@@ -144,13 +144,6 @@ class BusinessDaysServiceImpl implements BusinessDaysService{
 	}
 
 
-	@Override
-	public ResponseDTO<List<BusinessDays>> search(SearchDTO searchDTO) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-
 
 	@Override
 	public BusinessDaysDTO get(String id) {
@@ -178,6 +171,44 @@ class BusinessDaysServiceImpl implements BusinessDaysService{
 			Pageable pageable = PageRequest.of(searchDTO.getPage(), searchDTO.getSize(), Sort.by(orders));
 
 			Page<BusinessDays> page = businessDaysRepo.findByType(searchDTO.getValue(), pageable);
+			ModelMapper mapper = new ModelMapper();
+			List<BusinessDaysDTO> businessDaysDTOs = page.getContent().stream()
+					.map(day -> mapper.map(day, BusinessDaysDTO.class)).collect(Collectors.toList());
+
+			ResponseDTO<List<BusinessDaysDTO>> responseDTO = mapper.map(page, ResponseDTO.class);
+			responseDTO.setData(businessDaysDTOs);
+			return responseDTO;
+		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED.toString());
+			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
+		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE.toString());
+			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
+		}
+	}
+
+
+
+	@Override
+	public ResponseDTO<List<BusinessDaysDTO>> search(SearchAttendence searchAttendence) {
+		try {
+			List<Sort.Order> orders = Optional.ofNullable(searchAttendence.getSearch().getOrders())
+					.orElseGet(Collections::emptyList).stream().map(order -> {
+						if (order.getOrder().equals(SearchDTO.ASC))
+							return Sort.Order.asc(order.getProperty());
+
+						return Sort.Order.desc(order.getProperty());
+					}).collect(Collectors.toList());
+			Pageable pageable = PageRequest.of(searchAttendence.getSearch().getPage(),
+					searchAttendence.getSearch().getSize(), Sort.by(orders));
+			
+			if(searchAttendence.getType()==null) searchAttendence.setType("%%");
+			
+			
+			Page<BusinessDays> page = businessDaysRepo.search(searchAttendence.getStartDate(), searchAttendence.getEndDate(), searchAttendence.getType(), pageable);
+			
+			
+			
 			ModelMapper mapper = new ModelMapper();
 			List<BusinessDaysDTO> businessDaysDTOs = page.getContent().stream()
 					.map(day -> mapper.map(day, BusinessDaysDTO.class)).collect(Collectors.toList());
