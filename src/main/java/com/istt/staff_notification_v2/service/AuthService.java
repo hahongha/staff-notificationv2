@@ -13,6 +13,8 @@ import org.springframework.web.client.ResourceAccessException;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 
+import com.istt.staff_notification_v2.configuration.ApplicationProperties;
+import com.istt.staff_notification_v2.configuration.ApplicationProperties.StatusEmployeeRef;
 import com.istt.staff_notification_v2.dto.LoginRequest;
 import com.istt.staff_notification_v2.dto.ResponseDTO;
 import com.istt.staff_notification_v2.entity.User;
@@ -42,11 +44,15 @@ class AuthServiceImpl implements AuthService {
 
 	@Autowired
 	JwtTokenProvider tokenProvider;
+	
+	@Autowired
+	ApplicationProperties props;
+	
 
 	@Override
 	public ResponseDTO<String> signin(LoginRequest loginRequest, User user) {
 		try {
-
+			
 			Authentication authentication = authenticationManager.authenticate(
 					new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 			// Set thông tin authentication vào Security Context
@@ -71,7 +77,7 @@ class AuthServiceImpl implements AuthService {
 	@Override
 	public ResponseDTO<String> signup(LoginRequest loginRequest, User user) {
 		try {
-
+			
 			Authentication authentication = authenticationManager.authenticate(
 					new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 			// Set thông tin authentication vào Security Context

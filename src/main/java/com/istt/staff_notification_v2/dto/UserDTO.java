@@ -14,6 +14,7 @@ public class UserDTO {
 	private String username;
 	private String password;
 	private Employee employee;
+	private String status;
 	private Set<RoleDTO> roles = new HashSet<>();
 	private String accessToken;
 	private String refreshToken;

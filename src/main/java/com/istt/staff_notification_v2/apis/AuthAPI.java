@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.istt.staff_notification_v2.apis.errors.BadRequestAlertException;
+import com.istt.staff_notification_v2.configuration.ApplicationProperties;
+import com.istt.staff_notification_v2.configuration.ApplicationProperties.StatusEmployeeRef;
 import com.istt.staff_notification_v2.dto.LoginRequest;
 import com.istt.staff_notification_v2.dto.ResponseDTO;
 import com.istt.staff_notification_v2.dto.UserDTO;
@@ -32,6 +34,8 @@ public class AuthAPI {
 
 	@Autowired
 	AuthService authService;
+	@Autowired
+	ApplicationProperties props;
 
 	private static final String ENTITY_NAME = "isttAuth";
 
@@ -41,6 +45,9 @@ public class AuthAPI {
 		Optional<User> userOptional = userRepo.findByUsername(loginRequest.getUsername());
 		if (userOptional.isEmpty()) {
 			throw new BadRequestAlertException("Bad request: User not found.", ENTITY_NAME, "Not Found");
+		}
+		if (userOptional.get().getStatus().equals(props.getSTATUS_EMPLOYEE().get(StatusEmployeeRef.SUSPEND.ordinal()))) {
+			throw new BadRequestAlertException("Bad request: Employee is suspend.", ENTITY_NAME, "Not Found");
 		}
 
 		User user = userOptional.get();

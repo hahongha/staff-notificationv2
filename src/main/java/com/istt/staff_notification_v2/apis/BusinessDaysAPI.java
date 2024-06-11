@@ -105,8 +105,8 @@ public class BusinessDaysAPI {
 	}
 	
 	@PostMapping("/search")
-	public ResponseDTO<List<BusinessDaysDTO>> search(@RequestBody @Valid SearchAttendence searchDTO) {
-//		logger.info("Create by"+ currentuser.getUsername());
+	public ResponseDTO<List<BusinessDaysDTO>> search(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid SearchAttendence searchDTO) {
+		logger.info("Create by"+ currentuser.getUsername());
 		return businessDaysService.search(searchDTO);
 	}
 	

@@ -32,6 +32,7 @@ import org.zalando.problem.Status;
 
 import com.istt.staff_notification_v2.apis.errors.BadRequestAlertException;
 import com.istt.staff_notification_v2.configuration.ApplicationProperties;
+import com.istt.staff_notification_v2.configuration.ApplicationProperties.StatusEmployeeRef;
 import com.istt.staff_notification_v2.dto.ResponseDTO;
 import com.istt.staff_notification_v2.dto.SearchDTO;
 import com.istt.staff_notification_v2.dto.UpdatePassword;
@@ -95,7 +96,7 @@ class UserServiceImpl implements UserService {
 			String user_id = UUID.randomUUID().toString().replaceAll("-", "");
 			user.setUserId(user_id);
 			user.setPassword(new BCryptPasswordEncoder().encode(userDTO.getPassword()));
-
+			
 			if (userRepo.findByUsername(userDTO.getUsername()).isPresent()) {
 				logger.error("Bad request: USER already exists");
 				throw new BadRequestAlertException("Bad request: USER already exists", ENTITY_NAME, "USER exists");
@@ -108,6 +109,11 @@ class UserServiceImpl implements UserService {
 					.orElseThrow(NoResultException::new));
 			user.setRoles(roles);
 
+			if (!props.getSTATUS_EMPLOYEE().contains(userDTO.getStatus())) {
+				user.setStatus(props.getSTATUS_EMPLOYEE().get(StatusEmployeeRef.ACTIVE.ordinal()));
+			}
+			
+			
 			// commit save
 			userRepo.save(user);
 			return mapper.map(user, UserDTO.class);
