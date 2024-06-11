@@ -113,8 +113,10 @@ class AttendanceServiceImpl implements AttendanceService {
 
 			return attendanceDTO;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED.toString());
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE.toString());
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -150,8 +152,10 @@ class AttendanceServiceImpl implements AttendanceService {
 
 			return attendanceDTO;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED.toString());
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE.toString());
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -210,8 +214,10 @@ class AttendanceServiceImpl implements AttendanceService {
 //			return mapper.map(attendance, AttendanceDTO.class);
 			return null;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED.toString());
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE.toString());
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -264,8 +270,10 @@ class AttendanceServiceImpl implements AttendanceService {
 			responseDTO.setData(levelDTOs);
 			return responseDTO;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED.toString());
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE.toString());
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}
@@ -291,8 +299,10 @@ class AttendanceServiceImpl implements AttendanceService {
 			responseDTO.setData(levelDTOs);
 			return responseDTO;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED.toString());
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE.toString());
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}

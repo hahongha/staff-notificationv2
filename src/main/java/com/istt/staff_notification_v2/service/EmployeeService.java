@@ -168,8 +168,10 @@ class EmployeeServiceImpl implements EmployeeService {
 			userRepo.save(user);
 			return employeeDTO;
 		} catch (ResourceAccessException e) {
+			logger.trace(Status.EXPECTATION_FAILED.toString());
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
+			logger.trace(Status.SERVICE_UNAVAILABLE.toString());
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
 	}

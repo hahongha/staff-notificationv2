@@ -37,6 +37,7 @@ import com.istt.staff_notification_v2.dto.SearchDTO;
 import com.istt.staff_notification_v2.dto.UpdatePassword;
 import com.istt.staff_notification_v2.dto.UserDTO;
 import com.istt.staff_notification_v2.dto.UserResponse;
+import com.istt.staff_notification_v2.entity.Employee;
 import com.istt.staff_notification_v2.entity.Role;
 import com.istt.staff_notification_v2.entity.User;
 import com.istt.staff_notification_v2.repository.RoleRepo;
@@ -65,6 +66,8 @@ public interface UserService {
 	ResponseDTO<List<UserResponse>> search(SearchDTO searchDTO);
 	
 	UserPrincipal getUserByJwt();
+	
+	Employee getEmployeebyUserName(String username);
 }
 
 @Service
@@ -265,6 +268,12 @@ class UserServiceImpl implements UserService {
 	public UserPrincipal getUserByJwt() {
 		UserPrincipal user = (UserPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		return user;
+	}
+
+	@Override
+	public Employee getEmployeebyUserName(String username) {
+		User user = userRepo.findByUsername(username).orElseThrow(NoResultException::new);
+		return user.getEmployee();
 	}
 
 }

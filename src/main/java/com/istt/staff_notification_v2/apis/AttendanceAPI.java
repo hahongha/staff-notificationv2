@@ -22,15 +22,19 @@ import com.istt.staff_notification_v2.apis.errors.BadRequestAlertException;
 import com.istt.staff_notification_v2.dto.AttendanceDTO;
 import com.istt.staff_notification_v2.dto.ResponseDTO;
 import com.istt.staff_notification_v2.dto.SearchDTO;
+import com.istt.staff_notification_v2.entity.Employee;
 import com.istt.staff_notification_v2.security.securityv2.CurrentUser;
 import com.istt.staff_notification_v2.security.securityv2.UserPrincipal;
 import com.istt.staff_notification_v2.service.AttendanceService;
+import com.istt.staff_notification_v2.service.UserService;
 
 @RestController
 @RequestMapping("/attendance")
 public class AttendanceAPI {
 	@Autowired
 	private AttendanceService attendanceService;
+	@Autowired
+	private UserService userService;
 
 	private static final String ENTITY_NAME = "isttAttendance";
 	
@@ -39,6 +43,7 @@ public class AttendanceAPI {
 	@PostMapping("")
 	public ResponseDTO<AttendanceDTO> create(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid AttendanceDTO attendanceDTO)
 			throws URISyntaxException {
+//		String employeeId = userService.getEmployeebyUserName(currentuser.getUsername()).getEmployeeId();
 		logger.info("Create by"+ currentuser.getUsername());
 //		System.err.println(currentuser.getUsername());
 		if (attendanceDTO.getStartDate() == null || attendanceDTO.getEndDate() == null) {

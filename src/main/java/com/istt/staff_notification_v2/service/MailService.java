@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -34,6 +36,8 @@ class MailServiceImpl implements MailService {
 	@Autowired
 	EmployeeRepo employeeRepo;
 
+	private static final Logger logger = LogManager.getLogger(MailService.class);
+	
 	@Override
 	public void sendEmail(LeaveRequestDTO leaveRequestDTO, EmployeeDTO receiver, String subject) {
 		MailDTO mailDTO = new MailDTO();
@@ -86,6 +90,7 @@ class MailServiceImpl implements MailService {
 			javaMailSender.send(email);
 
 		} catch (MessagingException e) {
+			logger.error("Email sent with error: " + e.getMessage());
 			System.out.println("Email sent with error: " + e.getMessage());
 		}
 	}

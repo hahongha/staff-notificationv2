@@ -22,18 +22,29 @@ public class Attendance {
 	@Column(name = "attendance_id", updatable = false, nullable = false)
 	private String attendanceId;
 
-	@Column(name = "type", updatable = false, nullable = false)
+	@Column(name = "type"
+			,updatable = false,
+			nullable = false
+			)
 	private String type;
 
-	@Column(name = "start_date", updatable = false, nullable = false)
+	@Column(name = "start_date"
+			, updatable = false
+			, nullable = false
+			)
 	private Date startDate;
 
-	@Column(name = "end_date", updatable = false, nullable = false)
+	@Column(name = "end_date", updatable = false
+			, nullable = false
+			)
 	private Date endDate;
 
 	private String updateBy;
 
-	@Column(name = "approved_by", updatable = false, nullable = false)
+	@Column(name = "approved_by"
+			, updatable = false
+			, nullable = false
+			)
 	private String approvedBy;
 
 	@ManyToOne
