@@ -241,8 +241,10 @@ class EmployeeServiceImpl implements EmployeeService {
 	@Transactional
 	@Override
 	public Boolean delete(String id) {
+		System.err.println(id);
 		Employee employee = employeeRepo.findByEmployeeId(id).orElseThrow(NoResultException::new);
 		if (employee != null) {
+			System.err.println(employee.getEmployeeId());
 			employee.setStatus(StatusEmployeeRef.SUSPEND.toString());
 			employeeRepo.save(employee);
 			User user = userRepo.findByEmployee(employee).orElseThrow(NoResultException::new);

@@ -51,13 +51,14 @@ public class EmployeeAPI {
 		return ResponseDTO.<EmployeeDTO>builder().code(String.valueOf(HttpStatus.OK.value())).data(employeeDTO).build();
 	}
 
-	@DeleteMapping("/{id}")
+	@DeleteMapping("/delete/{id}")
 	public ResponseDTO<Void> delete(@CurrentUser UserPrincipal currentuser,@PathVariable(value = "id") String id) throws URISyntaxException {
 		logger.info("create by :" + currentuser.getUsername());
 		if (id == null) {
 			logger.error("missing data");
 			throw new BadRequestAlertException("Bad request: missing id", ENTITY_NAME, "missing_id");
 		}
+		System.err.println(id);
 		employeeService.delete(id);
 		return ResponseDTO.<Void>builder().code(String.valueOf(HttpStatus.OK.value())).build();
 	}
