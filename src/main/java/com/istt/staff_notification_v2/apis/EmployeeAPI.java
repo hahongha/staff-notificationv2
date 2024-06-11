@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.istt.staff_notification_v2.apis.errors.BadRequestAlertException;
@@ -60,6 +61,18 @@ public class EmployeeAPI {
 		employeeService.delete(id);
 		return ResponseDTO.<Void>builder().code(String.valueOf(HttpStatus.OK.value())).build();
 	}
+	
+	@DeleteMapping("/ids")
+	public ResponseDTO<Void> deleteByList(@CurrentUser UserPrincipal currentuser,@RequestBody @Valid List<String> ids) throws URISyntaxException {
+		logger.info("create by :" + currentuser.getUsername());
+		if (ids == null) {
+			logger.error("missing data");
+			throw new BadRequestAlertException("Bad request: missing id", ENTITY_NAME, "missing_id");
+		}
+		employeeService.deleteAll(ids);
+		return ResponseDTO.<Void>builder().code(String.valueOf(HttpStatus.OK.value())).build();
+	}
+	
 
 	@GetMapping("/{id}")
 	// @PreAuthorize("hasRole('ROLE_ADMIN')")

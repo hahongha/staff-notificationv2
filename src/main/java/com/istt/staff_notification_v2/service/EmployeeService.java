@@ -62,7 +62,7 @@ public interface EmployeeService {
 
 	Boolean delete(String id);
 
-	Boolean deleteAll(List<Integer> ids);
+	Boolean deleteAll(List<String> ids);
 
 	EmployeeDTO get(String id);
 
@@ -245,6 +245,8 @@ class EmployeeServiceImpl implements EmployeeService {
 		if (employee != null) {
 			employee.setStatus(StatusEmployeeRef.SUSPEND.toString());
 			employeeRepo.save(employee);
+			User user = userRepo.findByEmployee(employee).orElseThrow(NoResultException::new);
+			user.setStatus(StatusEmployeeRef.SUSPEND.toString());
 			return true;
 		}
 		logger.error("missing data");
@@ -252,9 +254,19 @@ class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public Boolean deleteAll(List<Integer> ids) {
-		// TODO Auto-generated method stub
-		return null;
+	public Boolean deleteAll(List<String> ids) {
+		List<Employee> employees = employeeRepo.findAllById(ids);
+		if (employees.size()<1 ) {
+			logger.error("missing data");
+			return false;
+		}
+		for (Employee employee : employees) {
+			employee.setStatus(StatusEmployeeRef.SUSPEND.toString());
+			employeeRepo.save(employee);
+			User user = userRepo.findByEmployee(employee).orElseThrow(NoResultException::new);
+			user.setStatus(StatusEmployeeRef.SUSPEND.toString());
+		}
+		return true;
 	}
 
 	@Override

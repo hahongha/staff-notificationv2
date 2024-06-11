@@ -174,7 +174,8 @@ class UserServiceImpl implements UserService {
 	public Boolean delete(String id) {
 		User user = userRepo.findById(id).orElseThrow(NoResultException::new);
 		if (user != null) {
-			userRepo.deleteById(id);
+//			userRepo.deleteById(id);
+			user.setStatus(StatusEmployeeRef.SUSPEND.toString());
 			return true;
 		}
 		logger.error("not found user "+id);
