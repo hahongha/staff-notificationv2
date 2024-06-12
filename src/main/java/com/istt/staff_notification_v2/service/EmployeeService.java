@@ -52,6 +52,10 @@ import com.istt.staff_notification_v2.repository.UserRepo;
 public interface EmployeeService {
 	EmployeeDTO create(EmployeeDTO employeeDTO);
 
+	List<String> resetEmployeeDependence(String id);
+
+	List<String> resetAll(List<String> ids);
+	
 	EmployeeDTO findByName(String name);
 
 	EmployeeDTO findByEmail(String email);
@@ -571,6 +575,30 @@ class EmployeeServiceImpl implements EmployeeService {
 		}
 		return null;
 
+	}
+	
+	@Override
+	public List<String> resetEmployeeDependence(String id) {
+		Employee employee = employeeRepo.findById(id).orElseThrow(NoResultException::new);
+		List<String> employeeDependences = filterEmployeeDependence(employee);
+		employee.setEmployeeDependence(employeeDependences);
+		System.err.println(employee.getEmployeeDependence().toString());
+		employeeRepo.save(employee);
+		return employeeDependences;
+	}
+	
+	@Override
+	public List<String> resetAll(List<String> ids) {
+		List<Employee> employees = employeeRepo.findAllById(ids);
+		if(employees.size()<1) return null;
+		for (Employee e : employees) {
+			Employee employee = employeeRepo.findById(e.getEmployeeId()).orElseThrow(NoResultException::new);
+			List<String> employeeDependences = filterEmployeeDependence(employee);
+			employee.setEmployeeDependence(employeeDependences);
+			System.err.println(employee.getEmployeeDependence().toString());
+			employeeRepo.save(employee);	
+		}
+		return ids;
 	}
 
 }

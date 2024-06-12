@@ -126,4 +126,16 @@ public class EmployeeAPI {
 		return ResponseDTO.<List<EmployeeDTO>>builder().code(String.valueOf(HttpStatus.OK.value()))
 				.data(employeeService.test()).build();
 	}
+	
+	@PostMapping("/testreset")
+	public ResponseDTO<List<String>> testReset(@RequestBody @Valid String employee ) {
+		return ResponseDTO.<List<String>>builder().code(String.valueOf(HttpStatus.OK.value()))
+				.data(employeeService.resetEmployeeDependence(employee)).build();
+	}
+	
+	@PostMapping("/testresetall")
+	public ResponseDTO<List<String>> testResetAll(@RequestBody @Valid List<String> ids ) {
+		return ResponseDTO.<List<String>>builder().code(String.valueOf(HttpStatus.OK.value()))
+				.data(employeeService.resetAll(ids)).build();
+	}
 }
