@@ -22,11 +22,19 @@ import org.springframework.format.annotation.DateTimeFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.istt.staff_notification_v2.utils.StringListConverter;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+
 @Table(name = "employee")
 @EqualsAndHashCode(callSuper = false, exclude = { "levels", "department" })
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
