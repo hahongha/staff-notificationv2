@@ -7,11 +7,21 @@ import java.util.List;
 import java.util.Set;
 
 import com.istt.staff_notification_v2.entity.Department;
+import com.istt.staff_notification_v2.entity.Employee;
+import com.istt.staff_notification_v2.entity.Level;
 import com.istt.staff_notification_v2.entity.User;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+
 public class EmployeeDTO {
 	private String employeeId;
 

@@ -31,10 +31,6 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-
 @Table(name = "employee")
 @EqualsAndHashCode(callSuper = false, exclude = { "levels", "department" })
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })

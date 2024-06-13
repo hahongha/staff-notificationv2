@@ -132,8 +132,8 @@ class DepartmentServiceImpl implements DepartmentService {
 		}
 	}
 
-	@Override
 	@Transactional
+	@Override
 	public DepartmentDTO update(DepartmentDTO departmentDTO) {
 		try {
 			Optional<Department> departOptionalOptional = departmentRepo
