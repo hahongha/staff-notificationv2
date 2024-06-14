@@ -40,16 +40,20 @@ import com.istt.staff_notification_v2.dto.EmployeeRelationshipResponse;
 import com.istt.staff_notification_v2.dto.LevelDTO;
 import com.istt.staff_notification_v2.dto.ResponseDTO;
 import com.istt.staff_notification_v2.dto.SearchDTO;
+import com.istt.staff_notification_v2.entity.Attendance;
 import com.istt.staff_notification_v2.entity.Department;
 import com.istt.staff_notification_v2.entity.Employee;
 import com.istt.staff_notification_v2.entity.Level;
 import com.istt.staff_notification_v2.entity.Rule;
 import com.istt.staff_notification_v2.entity.User;
+import com.istt.staff_notification_v2.repository.AttendanceRepo;
 import com.istt.staff_notification_v2.repository.DepartmentRepo;
 import com.istt.staff_notification_v2.repository.EmployeeRepo;
 import com.istt.staff_notification_v2.repository.LevelRepo;
 import com.istt.staff_notification_v2.repository.RuleRepo;
 import com.istt.staff_notification_v2.repository.UserRepo;
+import com.istt.staff_notification_v2.utils.utils;
+import com.istt.staff_notification_v2.utils.utils.DateRange;
 
 public interface EmployeeService {
 	EmployeeDTO create(EmployeeDTO employeeDTO);
@@ -83,6 +87,13 @@ public interface EmployeeService {
 //	NodeDepartment buildDepartmentTree(List<Employee> employees);
 
 	Map<String, List<EmployeeDTO>> findEmployeeToExportExcel();
+	
+	EmployeeDTO calCountOfDayOff(String employeeId);
+	
+	EmployeeDTO saveCountOfDayOff(String employeeId);
+	
+	List<EmployeeDTO> saveCountOfDayOff(List<String> ids);
+	
 
 }
 
@@ -99,6 +110,9 @@ class EmployeeServiceImpl implements EmployeeService {
 
 	@Autowired
 	private RuleRepo ruleRepo;
+	
+	@Autowired
+	private AttendanceRepo attendanceRepo;
 
 	@Autowired
 	private DepartmentRepo departmentRepo;
@@ -614,6 +628,41 @@ class EmployeeServiceImpl implements EmployeeService {
 		} catch (HttpServerErrorException | HttpClientErrorException e) {
 			throw Problem.builder().withStatus(Status.SERVICE_UNAVAILABLE).withDetail("SERVICE_UNAVAILABLE").build();
 		}
+	}
+
+	@Override
+	public EmployeeDTO calCountOfDayOff(String employeeId) {
+		float count=0;
+		Employee employee = employeeRepo.findById(employeeId).orElseThrow(NoResultException::new);
+		DateRange dateRange = utils.getCurrentMonth();
+		List<Attendance> attendances = attendanceRepo.findByEmployeeStartDate(employeeId, dateRange.getStartDate(), dateRange.getEndDate());
+		if(attendances.size()>0) {
+			for (Attendance attendance : attendances) {
+				count+= attendance.getDuration();
+			}
+			count = employee.getCountOfDayOff()- count;
+		}
+		return new ModelMapper().map(employee, EmployeeDTO.class);
+	}
+
+	@Override
+	public EmployeeDTO saveCountOfDayOff(String employeeId) {
+		EmployeeDTO employeeDTO = calCountOfDayOff(employeeId);
+		Employee employee = new ModelMapper().map(employeeDTO, Employee.class);
+		employeeRepo.save(employee);
+		return employeeDTO;
+	}
+
+	@Override
+	public List<EmployeeDTO> saveCountOfDayOff(List<String> ids) {
+		List<Employee> employees= employeeRepo.findAllById(ids);
+		List<EmployeeDTO> employeeDTOs = new ArrayList<EmployeeDTO>();
+		if(employees.size()==0) return null;
+		for (Employee employee : employees) {
+			EmployeeDTO employeeDTO = saveCountOfDayOff(employee.getEmployeeId());
+			employeeDTOs.add(employeeDTO);
+		}
+		return employeeDTOs;
 	}
 
 }

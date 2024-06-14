@@ -32,6 +32,11 @@ public class Employee {
 	@Id
 	@Column(name = "employee_id", updatable = false, nullable = false)
 	private String employeeId;
+	
+	@Column(name= "staff_id",updatable = false, nullable = false)
+	private String staffId;
+	
+	private float countOfDayOff;
 
 	private String fullname;
 

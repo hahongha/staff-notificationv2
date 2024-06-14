@@ -23,7 +23,7 @@ public class utils {
 			this.endDate = endDate;
 			this.duration = calculateDuration(startDate, endDate);
 		}
-
+		
 		private float calculateDuration(Date startDate, Date endDate) {
 			long diffInMillies = endDate.getTime() - startDate.getTime();
 			float diffInHours = (float) diffInMillies / (1000 * 60 * 60);
@@ -31,6 +31,8 @@ public class utils {
 			// Round to the nearest 0.5
 			return (float) (Math.round(diffInDays * 2) / 2.0);
 		}
+		
+		
 
 		public Date getStartDate() {
 			return startDate;
@@ -146,6 +148,16 @@ public class utils {
 			System.out.println("Exception :" + e);
 			return null;
 		}
+	}
+	
+	public static DateRange getCurrentMonth() {
+		 Calendar calendar = Calendar.getInstance();
+//	     calendar.add(Calendar.MONTH, -1);
+	     calendar.set(Calendar.DAY_OF_MONTH, 1);
+	     Date startDate = calendar.getTime();
+	     calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+	     Date endDate = calendar.getTime();
+	     return new DateRange(startDate, endDate);
 	}
 
 }
