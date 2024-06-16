@@ -10,12 +10,16 @@ import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.istt.staff_notification_v2.utils.StringListConverter;
@@ -33,7 +37,7 @@ public class Employee {
 	@Column(name = "employee_id", updatable = false, nullable = false)
 	private String employeeId;
 	
-	@Column(name= "staff_id",updatable = false, nullable = false)
+	@Column(name= "staff_id", updatable = false, nullable = false)
 	private String staffId;
 	
 	private float countOfDayOff;

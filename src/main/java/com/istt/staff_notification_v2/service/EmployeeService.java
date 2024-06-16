@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -88,11 +89,11 @@ public interface EmployeeService {
 
 	Map<String, List<EmployeeDTO>> findEmployeeToExportExcel();
 	
-	EmployeeDTO calCountOfDayOff(String employeeId);
+	Employee calCountOfDayOff(String employeeId);
 	
 	EmployeeDTO saveCountOfDayOff(String employeeId);
 	
-	List<EmployeeDTO> saveCountOfDayOff(List<String> ids);
+	ResponseDTO<List<EmployeeDTO>> saveCountOfDayOffs(List<String> ids);
 	
 
 }
@@ -121,6 +122,29 @@ class EmployeeServiceImpl implements EmployeeService {
 	ApplicationProperties props;
 
 	private static final String ENTITY_NAME = "isttEmployee";
+	
+	private String createStaffIdfromDepartment(String department) {
+		String value="";
+		Random random = new Random();
+		do {
+        // Generate a random integer between 10 (inclusive) and 100 (exclusive)
+        int randomNumber = 1000 + random.nextInt(9000);
+        
+        value = department + randomNumber;
+		}while(employeeRepo.existsByStaffId(value));
+		
+		return value;
+	}
+	
+	private String createStaffIdAutoIncrement() {
+		int countstaff = employeeRepo.getAll().size();
+		String value =""+ 1000000 +countstaff;
+		while (employeeRepo.existsByStaffId(value)) {
+			countstaff++;
+			value =""+ 1000000 +countstaff;
+		}
+		return value;
+	}
 
 	private static Long getMaxLevelCode(Employee e) {
 		Long max = Long.MIN_VALUE;
@@ -158,7 +182,7 @@ class EmployeeServiceImpl implements EmployeeService {
 			ModelMapper mapper = new ModelMapper();
 			Employee employee = mapper.map(employeeDTO, Employee.class);
 			employee.setEmployeeId(UUID.randomUUID().toString().replaceAll("-", ""));
-
+			
 			Set<Level> levels = new HashSet<Level>();
 			for (LevelDTO level : employeeDTO.getLevels()) {
 				levels.add(levelRepo.findByLevelId(level.getLevelId()).orElseThrow(NoResultException::new));
@@ -171,6 +195,14 @@ class EmployeeServiceImpl implements EmployeeService {
 			filterEmployeeDependence(employee);
 
 			employee.setEmployeeDependence(filterEmployeeDependence(employee));
+			
+			//set from departmentid
+//			employee.setStaffId(createStaffIdfromDepartment(employee.getDepartment().getDepartmentName()));
+//			employeeDTO.setStaffId(createStaffIdfromDepartment(employee.getDepartment().getDepartmentName()));
+
+			//set auto 
+			employee.setStaffId(createStaffIdAutoIncrement());
+			
 			employeeRepo.save(employee);
 
 //			create new user 
@@ -187,6 +219,8 @@ class EmployeeServiceImpl implements EmployeeService {
 
 			// commit save
 			userRepo.save(user);
+			
+			
 			return employeeDTO;
 		} catch (ResourceAccessException e) {
 			throw Problem.builder().withStatus(Status.EXPECTATION_FAILED).withDetail("ResourceAccessException").build();
@@ -631,30 +665,34 @@ class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public EmployeeDTO calCountOfDayOff(String employeeId) {
+	public Employee calCountOfDayOff(String employeeId) {
 		float count=0;
 		Employee employee = employeeRepo.findById(employeeId).orElseThrow(NoResultException::new);
 		DateRange dateRange = utils.getCurrentMonth();
 		List<Attendance> attendances = attendanceRepo.findByEmployeeStartDate(employeeId, dateRange.getStartDate(), dateRange.getEndDate());
 		if(attendances.size()>0) {
 			for (Attendance attendance : attendances) {
-				count+= attendance.getDuration();
+				//chi tru nhung lan nghi phep k dac biet trong thang
+				if(!attendance.getLeavetype().isSpecialType())
+					count+= attendance.getDuration();
+				System.err.println(count);
 			}
-			count = employee.getCountOfDayOff()- count;
+			count = employee.getCountOfDayOff() - count;
+			employee.setCountOfDayOff(count);
 		}
-		return new ModelMapper().map(employee, EmployeeDTO.class);
+		return employee;
 	}
 
 	@Override
 	public EmployeeDTO saveCountOfDayOff(String employeeId) {
-		EmployeeDTO employeeDTO = calCountOfDayOff(employeeId);
-		Employee employee = new ModelMapper().map(employeeDTO, Employee.class);
+		Employee employee = calCountOfDayOff(employeeId);
+		EmployeeDTO employeeDTO = new ModelMapper().map(employee, EmployeeDTO.class);
 		employeeRepo.save(employee);
 		return employeeDTO;
 	}
 
 	@Override
-	public List<EmployeeDTO> saveCountOfDayOff(List<String> ids) {
+	public ResponseDTO<List<EmployeeDTO>> saveCountOfDayOffs(List<String> ids) {
 		List<Employee> employees= employeeRepo.findAllById(ids);
 		List<EmployeeDTO> employeeDTOs = new ArrayList<EmployeeDTO>();
 		if(employees.size()==0) return null;
@@ -662,7 +700,9 @@ class EmployeeServiceImpl implements EmployeeService {
 			EmployeeDTO employeeDTO = saveCountOfDayOff(employee.getEmployeeId());
 			employeeDTOs.add(employeeDTO);
 		}
-		return employeeDTOs;
+		ResponseDTO<List<EmployeeDTO>> responseDTO = new ModelMapper().map(employeeDTOs, ResponseDTO.class);
+		responseDTO.setData(employeeDTOs);
+		return responseDTO;
 	}
 
 }
