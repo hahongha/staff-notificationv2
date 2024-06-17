@@ -95,6 +95,7 @@ public interface EmployeeService {
 	
 	ResponseDTO<List<EmployeeDTO>> saveCountOfDayOffs(List<String> ids);
 	
+	
 
 }
 
@@ -277,9 +278,13 @@ class EmployeeServiceImpl implements EmployeeService {
 			mapper.createTypeMap(EmployeeDTO.class, Employee.class).setProvider(p -> employeeRepo
 					.findByEmployeeId(employeeDTO.getEmployeeId()).orElseThrow(NoResultException::new));
 
+			if(employeeDTO.getCountOfDayOff()% 0.5 != 0|| employeeDTO.getCountOfDayOff()==(float)employeeDTO.getCountOfDayOff())
+				throw new BadRequestAlertException("Duration only half", ENTITY_NAME,"logic");
+			
 			Employee employee = mapper.map(employeeDTO, Employee.class);
 			employee.setEmployeeId(employeeInDB.getEmployeeId());
-
+			
+			
 			employeeRepo.save(employee);
 			return employeeDTO;
 		} catch (ResourceAccessException e) {
@@ -311,7 +316,10 @@ class EmployeeServiceImpl implements EmployeeService {
 	@Override
 	public EmployeeDTO get(String id) {
 		try {
-			Employee employee = employeeRepo.findByEmployeeId(id).orElseThrow(NoResultException::new);
+//			Employee employee = employeeRepo.findByEmployeeId(id).orElseThrow(NoResultException::new);
+			
+			Employee employee = calCountOfDayOff(id);
+			
 			EmployeeDTO employeeDTO = new ModelMapper().map(employee, EmployeeDTO.class);
 			return employeeDTO;
 
@@ -707,5 +715,4 @@ class EmployeeServiceImpl implements EmployeeService {
 		responseDTO.setData(employeeDTOs);
 		return responseDTO;
 	}
-
 }
