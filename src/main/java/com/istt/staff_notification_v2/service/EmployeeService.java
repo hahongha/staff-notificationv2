@@ -668,6 +668,9 @@ class EmployeeServiceImpl implements EmployeeService {
 	public Employee calCountOfDayOff(String employeeId) {
 		float count=0;
 		Employee employee = employeeRepo.findById(employeeId).orElseThrow(NoResultException::new);
+		if(getMaxLevelCode(employee)==0) {
+			return employee;
+		}
 		DateRange dateRange = utils.getCurrentMonth();
 		List<Attendance> attendances = attendanceRepo.findByEmployeeStartDate(employeeId, dateRange.getStartDate(), dateRange.getEndDate());
 		if(attendances.size()>0) {
