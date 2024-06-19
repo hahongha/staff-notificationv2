@@ -1,5 +1,6 @@
 package com.istt.staff_notification_v2.service;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -29,6 +30,7 @@ import com.istt.staff_notification_v2.dto.LeaveRequestDTO;
 import com.istt.staff_notification_v2.dto.MailRequestDTO;
 import com.istt.staff_notification_v2.dto.ResponseLeaveRequest;
 import com.istt.staff_notification_v2.dto.SearchLeaveRequest;
+import com.istt.staff_notification_v2.entity.Attendance;
 import com.istt.staff_notification_v2.entity.Employee;
 import com.istt.staff_notification_v2.entity.LeaveRequest;
 import com.istt.staff_notification_v2.repository.AttendanceRepo;
@@ -132,9 +134,16 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 //					throw new BadRequestAlertException("have attendance in this time", ENTITY_NAME, "exists");
 //			}
 			Date endDate = utils.calculateEndDateExcepDate(leaveRequestDTO.getStartDate(), leaveRequestDTO.getDuration());
-			if(attendanceRepo.findByEmployeeAndDate(leaveRequest.getEmployee().getEmployeeId(),leaveRequestDTO.getStartDate() , endDate).size()>0)
-				throw new BadRequestAlertException("Bad request: have attendance in this time", ENTITY_NAME, "exist");
+			List<Attendance> attendances = attendanceRepo.findByEmployeeAndDate(leaveRequest.getEmployee().getEmployeeId(),leaveRequestDTO.getStartDate() , endDate);
 			
+			if(attendances.size()>0) {
+				String date= ":";
+				SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+				for (Attendance attendance : attendances) {
+					date += sdf.format(attendance.getStartDate()) +",";
+				}
+				throw new BadRequestAlertException("Bad request: have attendance in this time"+ date, ENTITY_NAME, "exist");
+			}
 			if (leaveRequestDTO.getLeavetype().getLeavetypeId() == null)
 				throw new BadRequestAlertException("Bad request: Missing LeaveTypeId", ENTITY_NAME, "Missing");
 
