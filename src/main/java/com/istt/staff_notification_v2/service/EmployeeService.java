@@ -168,6 +168,13 @@ class EmployeeServiceImpl implements EmployeeService {
 			if (!props.getSTATUS_EMPLOYEE().contains(employee.getStatus())) {
 				employee.setStatus(props.getSTATUS_EMPLOYEE().get(StatusEmployeeRef.ACTIVE.ordinal()));
 			}
+			
+			if(employee.getOffdate()!= null && employee.getHiredate().after(employee.getOffdate())) {
+				throw new BadRequestAlertException("hire date must be before offdate", ENTITY_NAME, "date");
+				
+			}
+			
+			
 			filterEmployeeDependence(employee);
 
 			employee.setEmployeeDependence(filterEmployeeDependence(employee));

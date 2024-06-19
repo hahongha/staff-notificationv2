@@ -87,6 +87,13 @@ class BusinessDaysServiceImpl implements BusinessDaysService {
 				logger.error("Invalid TYPE BUSINESSDAYS");
 				throw new BadRequestAlertException("Invalid TYPE BUSINESSDAYS", ENTITY_NAME, "Invalid");
 			}
+			
+			if(businessDaysDTO.getStartdate().after(businessDaysDTO.getEnddate())) {
+				logger.error("Startdate BUSINESSDAYS must be before Enddate");
+				throw new BadRequestAlertException("Startdate BUSINESSDAYS must be before Enddate", ENTITY_NAME, "Invalid");
+			}
+				
+			
 			businessDaysRepo.save(businessDays);
 			return businessDaysDTO;
 		} catch (ResourceAccessException e) {

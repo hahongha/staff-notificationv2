@@ -51,6 +51,9 @@ public class utils {
 			calendar.set(Calendar.MINUTE, 0);
 			calendar.set(Calendar.SECOND, 0);
 			calendar.set(Calendar.MILLISECOND, 0);
+			
+			//duration khong bao gom ngay chu nhat
+			
 
 			long durationInMillis = (long) (duration * 24 * 3600 * 1000);
 
@@ -94,6 +97,15 @@ public class utils {
 			}
 
 			Calendar tempCal = (Calendar) calendar.clone();
+			
+			int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+            if (dayOfWeek == Calendar.SATURDAY||dayOfWeek == Calendar.SUNDAY) {
+                // System.err.println(calendar.getTime()+ "is SATURDAY, SUNDAY");
+                calendar.add(Calendar.HOUR_OF_DAY, 12);
+                continue;
+            }
+			
+			
 			if (currentDuration == 0.5f) {
 				tempCal.add(Calendar.HOUR_OF_DAY, 12);
 			} else {
@@ -174,4 +186,28 @@ public class utils {
 
 		return new DateRange(startDate, endDate, durationInDays);
 	}
+	
+	 public static Date calculateEndDateExcepDate(Date startDate, float duration) {
+		 	int durationInDays = (int) duration;
+	        Calendar cal = Calendar.getInstance();
+	        cal.setTime(startDate);
+
+	        int daysToAdd = 0;
+
+	        while (daysToAdd < durationInDays) {
+	            // Add one day to the current date
+	            cal.add(Calendar.DATE, 1);
+
+	            // Check if the day is not a Sunday
+	            if (cal.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY|| cal.get(Calendar.DAY_OF_WEEK) != Calendar.SATURDAY) {
+	                daysToAdd++;
+	            }
+	        }
+	        
+	        if(duration- durationInDays >0) 
+	        	cal.add(Calendar.DATE, 1);
+	        
+	        return cal.getTime();
+	    }
+
 }

@@ -31,11 +31,13 @@ import com.istt.staff_notification_v2.dto.ResponseLeaveRequest;
 import com.istt.staff_notification_v2.dto.SearchLeaveRequest;
 import com.istt.staff_notification_v2.entity.Employee;
 import com.istt.staff_notification_v2.entity.LeaveRequest;
+import com.istt.staff_notification_v2.repository.AttendanceRepo;
 import com.istt.staff_notification_v2.repository.EmployeeRepo;
 import com.istt.staff_notification_v2.repository.LeaveRequestRepo;
 import com.istt.staff_notification_v2.repository.LeaveTypeRepo;
 import com.istt.staff_notification_v2.repository.UserRepo;
 import com.istt.staff_notification_v2.utils.utils;
+import com.istt.staff_notification_v2.utils.utils.DateRange;
 
 public interface LeaveRequestService {
 
@@ -74,6 +76,9 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 
 	@Autowired
 	MailService mailService;
+	
+	@Autowired
+	private AttendanceRepo attendanceRepo;
 
 	@Autowired
 	private LeaveTypeRepo leaveTypeRepo;
@@ -109,7 +114,6 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 			// Validate duration:
 			if (leaveRequestDTO.getDuration() <= 0.0 || leaveRequestDTO.getDuration() % 0.5 != 0.0)
 				throw new BadRequestAlertException("Bad request: Invalid duration", ENTITY_NAME, "Invalid");
-
 			leaveRequest.setLeaveqequestId(UUID.randomUUID().toString().replaceAll("-", ""));
 
 			// Validate employeeId in leaveRequest
@@ -120,7 +124,17 @@ class LeaveRequestServiceImpl implements LeaveRequestService {
 			Employee employee = employeeRepo.findByEmployeeId(leaveRequestDTO.getEmployee().getEmployeeId())
 					.orElseThrow(NoResultException::new);
 			leaveRequest.setEmployee(employee);
-
+			
+//			List<DateRange> splList = utils.splitDateRange(leaveRequestDTO.getStartDate(), leaveRequestDTO.getDuration());
+//			
+//			for (DateRange dateRange : splList) {
+//				if(attendanceRepo.findByEmployeeIdAndDate(leaveRequest.getEmployee().getEmployeeId(), dateRange.getStartDate()).isPresent())
+//					throw new BadRequestAlertException("have attendance in this time", ENTITY_NAME, "exists");
+//			}
+			Date endDate = utils.calculateEndDateExcepDate(leaveRequestDTO.getStartDate(), leaveRequestDTO.getDuration());
+			if(attendanceRepo.findByEmployeeAndDate(leaveRequest.getEmployee().getEmployeeId(),leaveRequestDTO.getStartDate() , endDate).size()>0)
+				throw new BadRequestAlertException("Bad request: have attendance in this time", ENTITY_NAME, "exist");
+			
 			if (leaveRequestDTO.getLeavetype().getLeavetypeId() == null)
 				throw new BadRequestAlertException("Bad request: Missing LeaveTypeId", ENTITY_NAME, "Missing");
 
