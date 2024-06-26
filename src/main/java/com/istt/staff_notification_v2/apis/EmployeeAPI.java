@@ -129,10 +129,16 @@ public class EmployeeAPI {
 	}
 	
 	@PostMapping("/resetDependence")
-	public ResponseDTO<EmployeeDTO> reset(@RequestBody @Valid EmployeeDTO employeeDTO)
+	public ResponseDTO<EmployeeDTO> resetDep(@RequestBody @Valid EmployeeDTO employeeDTO)
 			throws URISyntaxException {
 		EmployeeDTO employeeDTO2 = employeeService.reset(employeeDTO.getEmployeeId());
 		return ResponseDTO.<EmployeeDTO>builder().code(String.valueOf(HttpStatus.OK.value())).data(employeeDTO2).build();
+	}
+	
+	@PostMapping("/resetDeps")
+	public ResponseDTO<List<EmployeeDTO>> resetDeps(@RequestBody @Valid List<String> ids)
+			throws URISyntaxException {
+		return employeeService.resetListDependence(ids);
 	}
 	
 	

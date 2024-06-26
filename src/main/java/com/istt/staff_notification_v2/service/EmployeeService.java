@@ -75,7 +75,7 @@ public interface EmployeeService {
 
 	List<String> filterEmployeeDependence(Employee employee);
 	
-	List<String> resetEmployeeDependence(String employeeId);
+	ResponseDTO<List<EmployeeDTO>> resetListDependence(List<String> ids);
 
 	List<EmployeeDTO> getEmployeeDependence(String employeeId);
 
@@ -696,9 +696,18 @@ class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<String> resetEmployeeDependence(String employeeId) {
-		// TODO Auto-generated method stub
-		return null;
+	public ResponseDTO<List<EmployeeDTO>> resetListDependence(List<String> ids) {
+		if(ids.size()==0 ) throw new BadRequestAlertException("missing data", ENTITY_NAME, "data");
+		List<Employee> employees = employeeRepo.findAllById(ids);
+		for (Employee employee2 : employees) {
+			reset(employee2.getEmployeeId());
+		}
+		List<Employee> employees2 = employeeRepo.findAllById(ids);
+		List<EmployeeDTO> employeeDTOs = employees2.stream()
+				.map(e -> new ModelMapper().map(e, EmployeeDTO.class)).collect(Collectors.toList());
+		ResponseDTO<List<EmployeeDTO>> responseDTO = new ModelMapper().map(employeeDTOs, ResponseDTO.class);
+		responseDTO.setData(employeeDTOs);
+		return responseDTO;
 	}
 
 	@Override
