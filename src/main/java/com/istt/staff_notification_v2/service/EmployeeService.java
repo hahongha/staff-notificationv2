@@ -74,6 +74,8 @@ public interface EmployeeService {
 	EmployeeDTO get(String id);
 
 	List<String> filterEmployeeDependence(Employee employee);
+	
+	List<String> resetEmployeeDependence(String employeeId);
 
 	List<EmployeeDTO> getEmployeeDependence(String employeeId);
 
@@ -94,6 +96,7 @@ public interface EmployeeService {
 	EmployeeDTO saveCountOfDayOff(String employeeId);
 
 	ResponseDTO<List<EmployeeDTO>> saveCountOfDayOffs(List<String> ids);
+	EmployeeDTO reset(String id);
 
 }
 
@@ -691,5 +694,22 @@ class EmployeeServiceImpl implements EmployeeService {
 		responseDTO.setData(employeeDTOs);
 		return responseDTO;
 	}
+
+	@Override
+	public List<String> resetEmployeeDependence(String employeeId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public EmployeeDTO reset(String id) {
+		Employee employee = employeeRepo.findByEmployeeId(id).orElseThrow(NoResultException::new);
+		List<String> filter = filterEmployeeDependence(employee);
+		employee.setEmployeeDependence(filter);
+		employeeRepo.save(employee);
+		System.err.println(employee.getEmployeeDependence().size());
+		return new ModelMapper().map(employee, EmployeeDTO.class);
+	}
+
 
 }

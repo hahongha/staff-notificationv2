@@ -127,4 +127,13 @@ public class EmployeeAPI {
 			throws URISyntaxException {
 		return employeeService.saveCountOfDayOffs(ids);
 	}
+	
+	@PostMapping("/resetDependence")
+	public ResponseDTO<EmployeeDTO> reset(@RequestBody @Valid EmployeeDTO employeeDTO)
+			throws URISyntaxException {
+		EmployeeDTO employeeDTO2 = employeeService.reset(employeeDTO.getEmployeeId());
+		return ResponseDTO.<EmployeeDTO>builder().code(String.valueOf(HttpStatus.OK.value())).data(employeeDTO2).build();
+	}
+	
+	
 }
